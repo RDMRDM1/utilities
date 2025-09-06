@@ -12,26 +12,16 @@ end
 _G.UtilitiesInjected = true
 
 -- =========================
--- Inject utilities.lua only once
--- =========================
-if not _G.UtilitiesCodeInjected then
-    _G.UtilitiesCodeInjected = true
-    local scriptURL = "https://raw.githubusercontent.com/RDMRDM1/utilities/main/utilities.lua"
-    local menuCode = MachoWebRequest(scriptURL)
-    MachoIsolatedInject(menuCode)
-end
-
--- =========================
 -- Menu Settings
 -- =========================
 local MenuSize = vec2(600, 350)
-local MenuStartCoords = vec2(500, 500) 
+local MenuStartCoords = vec2(500, 500)
 
-local TabsBarWidth = 0 
-local SectionChildWidth = MenuSize.x - TabsBarWidth 
-local SectionsCount = 3 
-local SectionsPadding = 10 
-local MachoPaneGap = 10 
+local TabsBarWidth = 0
+local SectionChildWidth = MenuSize.x - TabsBarWidth
+local SectionsCount = 3
+local SectionsPadding = 10
+local MachoPaneGap = 10
 
 local EachSectionWidth = (SectionChildWidth - (SectionsPadding * (SectionsCount + 1))) / SectionsCount
 
@@ -47,9 +37,6 @@ local SectionThreeEnd   = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.
 -- =========================
 -- Create Menu Window
 -- =========================
-if _G.UtilitiesMenuWindow then
-    MachoMenuDestroy(_G.UtilitiesMenuWindow)
-end
 _G.UtilitiesMenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
 MachoMenuSetAccent(_G.UtilitiesMenuWindow, 137, 52, 235)
 
@@ -79,10 +66,11 @@ local freecamCoords = nil
 local freecamHeading = 0.0
 
 -- =========================
--- Player Thread
+-- Player Threads (Run Once)
 -- =========================
 if not _G.UtilitiesThreadCreated then
     _G.UtilitiesThreadCreated = true
+
     CreateThread(function()
         while true do
             local ped = PlayerPedId()
@@ -121,9 +109,7 @@ if not _G.UtilitiesThreadCreated then
             -- Anti-Headshot
             SetPedSuffersCriticalHits(ped, not selfOptions.antiHeadshot)
 
-            -- =========================
             -- Handle NoClip
-            -- =========================
             if selfOptions.noclip then
                 SetEntityInvincible(ped, true)
                 SetEntityVisible(ped, false, false)
@@ -147,9 +133,7 @@ if not _G.UtilitiesThreadCreated then
                 SetEntityVisible(ped, true, false)
             end
 
-            -- =========================
             -- Handle FreeCam
-            -- =========================
             if selfOptions.freecam then
                 if not freecamCoords then
                     freecamCoords = GetEntityCoords(ped)
@@ -244,18 +228,17 @@ MachoMenuButton(SelfSection, "Model Changer", function()
 end)
 
 -- =========================
--- Toggle Menu Thread
+-- Menu Toggle Thread
 -- =========================
-if not _G.UtilitiesMenuToggleThread then
-    _G.UtilitiesMenuToggleThread = true
-    local menuOpen = false
-    CreateThread(function()
-        while true do
-            Wait(0)
-            if IsControlJustPressed(0, 137) then -- Caps Lock
-                menuOpen = not menuOpen
-                MachoMenuSetVisible(_G.UtilitiesMenuWindow, menuOpen)
-            end
+local MENU_TOGGLE_KEY = 137 -- Caps Lock
+local menuOpen = false
+
+CreateThread(function()
+    while true do
+        Wait(0)
+        if IsControlJustPressed(0, MENU_TOGGLE_KEY) then
+            menuOpen = not menuOpen
+            MachoMenuSetVisible(_G.UtilitiesMenuWindow, menuOpen)
         end
-    end)
-end
+    end
+end)
