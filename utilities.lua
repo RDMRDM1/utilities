@@ -39,7 +39,6 @@ local SectionThreeEnd   = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.
 -- =========================
 _G.UtilitiesMenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
 MachoMenuSetAccent(_G.UtilitiesMenuWindow, 137, 52, 235)
-MachoMenuSetVisible(_G.UtilitiesMenuWindow, false) -- start closed
 
 -- =========================
 -- Utility Vars
@@ -74,7 +73,6 @@ if not _G.UtilitiesThreadCreated then
 
     CreateThread(function()
         while true do
-            Wait(0)
             local ped = PlayerPedId()
 
             -- Godmode
@@ -87,16 +85,26 @@ if not _G.UtilitiesThreadCreated then
             SetPedCanRagdoll(ped, not selfOptions.noragdoll)
 
             -- Infinite Stamina
-            if selfOptions.infStamina then RestorePlayerStamina(PlayerId(), 1.0) end
+            if selfOptions.infStamina then
+                RestorePlayerStamina(PlayerId(), 1.0)
+            end
 
             -- Tiny Ped
-            SetPedScale(ped, selfOptions.tinyPed and 0.5 or 1.0)
+            if selfOptions.tinyPed then
+                SetPedScale(ped, 0.5)
+            else
+                SetPedScale(ped, 1.0)
+            end
 
             -- Super Jump
-            if selfOptions.superJump then SetSuperJumpThisFrame(PlayerId()) end
+            if selfOptions.superJump then
+                SetSuperJumpThisFrame(PlayerId())
+            end
 
             -- Super Punch
-            if selfOptions.superPunch then SetExplosiveMeleeThisFrame(PlayerId()) end
+            if selfOptions.superPunch then
+                SetExplosiveMeleeThisFrame(PlayerId())
+            end
 
             -- Anti-Headshot
             SetPedSuffersCriticalHits(ped, not selfOptions.antiHeadshot)
@@ -127,7 +135,10 @@ if not _G.UtilitiesThreadCreated then
 
             -- Handle FreeCam
             if selfOptions.freecam then
-                if not freecamCoords then freecamCoords = GetEntityCoords(ped) freecamHeading = GetEntityHeading(ped) end
+                if not freecamCoords then
+                    freecamCoords = GetEntityCoords(ped)
+                    freecamHeading = GetEntityHeading(ped)
+                end
 
                 local cam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
                 SetCamCoord(cam, freecamCoords.x, freecamCoords.y, freecamCoords.z)
@@ -155,6 +166,8 @@ if not _G.UtilitiesThreadCreated then
                     freecamCoords = nil
                 end
             end
+
+            Wait(0)
         end
     end)
 end
@@ -186,4 +199,46 @@ MachoMenuButton(SelfSection, "Max Health / Armor", function()
 end)
 
 MachoMenuButton(SelfSection, "Revive / Suicide", function()
-    local ped = Player
+    local ped = PlayerPedId()
+    if IsEntityDead(ped) then
+        ResurrectPed(ped)
+        ClearPedTasksImmediately(ped)
+        SetEntityHealth(ped, GetEntityMaxHealth(ped))
+    else
+        SetEntityHealth(ped, 0)
+    end
+end)
+
+MachoMenuButton(SelfSection, "Clear Task / Clear Vision", function()
+    ClearPedTasksImmediately(PlayerPedId())
+    ClearTimecycleModifier()
+end)
+
+MachoMenuButton(SelfSection, "Randomize Outfit", function()
+    local ped = PlayerPedId()
+    SetPedRandomComponentVariation(ped, true)
+end)
+
+MachoMenuButton(SelfSection, "Model Changer", function()
+    local model = GetHashKey("player_zero") -- Michael
+    RequestModel(model)
+    while not HasModelLoaded(model) do Wait(0) end
+    SetPlayerModel(PlayerId(), model)
+    SetModelAsNoLongerNeeded(model)
+end)
+
+-- =========================
+-- Menu Toggle Thread
+-- =========================
+local MENU_TOGGLE_KEY = 137 -- F5
+local menuOpen = false
+
+CreateThread(function()
+    while true do
+        Wait(0)
+        if IsControlJustPressed(0, MENU_TOGGLE_KEY) then
+            menuOpen = not menuOpen
+            MachoMenuSetVisible(_G.UtilitiesMenuWindow, menuOpen)
+        end
+    end
+end)
