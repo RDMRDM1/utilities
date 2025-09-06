@@ -27,8 +27,6 @@ MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, M
 
 MachoMenuSetAccent(MenuWindow, 150, 0, 0)
 
-MachoMenuSetKeybind(WindowHandle, 0x2E)
-
 -- First tab
 FirstSection = MachoMenuGroup(MenuWindow, "Util.lua", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
 
