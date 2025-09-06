@@ -25,7 +25,7 @@ local SectionThreeEnd = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.y 
 -- Create our window, MenuStartCoords is where the menu starts
 MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
 
-MachoMenuSetAccent(MenuWindow, 137, 0, 0)
+MachoMenuSetAccent(MenuWindow, 137, 52, 235)
 
 
 -- First tab
@@ -74,15 +74,4 @@ DropDownHandle = MachoMenuDropDown(ThirdSection, "Drop Down",
     "Selectable 1",
     "Selectable 2",
     "Selectable 3"
-
-
--- Register command
-RegisterCommand("openmenu", function()
-    OpenCustomMenu()
-end)
-
--- Bind it to a key (default F2)
-RegisterKeyMapping("openmenu", "Open Custom Menu", "keyboard", "F2")
-
-
 )
