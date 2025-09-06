@@ -1,4 +1,4 @@
--- === Key Authentication ===
+-- Key Authentication System
 local AllowedKeys = {
     "UTIL-7F9D-K2L8-1XQ3",
     "UTIL-3PZ4-V8J1-Q9H2",
@@ -12,23 +12,25 @@ local AllowedKeys = {
     "UTIL-0F2H-V4R8-S6X5"
 }
 
-local CurrentKey = MachoAuthenticationKey()
-local KeyValid = false
+-- Replace this with your method of getting the user's key
+local CurrentKey = MachoAuthenticationKey() 
 
-for _, Key in ipairs(AllowedKeys) do
-    if Key == CurrentKey then
+local KeyValid = false
+for i, key in ipairs(AllowedKeys) do
+    if key == CurrentKey then
         KeyValid = true
         break
     end
 end
 
 if KeyValid then
-    print("Key is authenticated [" .. CurrentKey .. "]")
+    print("Key authenticated [" .. CurrentKey .. "]")
 else
-    print("Key is not authorized [" .. CurrentKey .. "]")
-    return -- stops the script if key is invalid
+    print("Key not valid [" .. CurrentKey .. "]")
+    return -- Stop script if key is invalid
 end
 
+-- Original Menu Code Starts Here
 local MenuSize = vec2(600, 350)
 local MenuStartCoords = vec2(500, 500) 
 
@@ -41,7 +43,6 @@ local MachoPaneGap = 10 -- Hard coded gap of accent at the top.
 
 -- Therefore each section width must be:
 local EachSectionWidth = (SectionChildWidth - (SectionsPadding * (SectionsCount + 1))) / SectionsCount
-
 
 -- Now you have each sections absolute width, you can calculate their X coordinate and Y coordinate
 local SectionOneStart = vec2(TabsBarWidth + (SectionsPadding * 1) + (EachSectionWidth * 0), SectionsPadding + MachoPaneGap)
@@ -56,15 +57,14 @@ local SectionThreeEnd = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.y 
 -- Create our window, MenuStartCoords is where the menu starts
 MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
 
-MachoMenuSetAccent(MenuWindow, 137, 0, 0)
-
+MachoMenuSetAccent(MenuWindow, 137, 52, 235)
 
 -- First tab
 FirstSection = MachoMenuGroup(MenuWindow, "Section One", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
 
 MachoMenuButton(FirstSection, "Close", function()
     MachoMenuDestroy(MenuWindow)
-  end)
+end)
 
 -- Second tab
 SecondSection = MachoMenuGroup(MenuWindow, "Section Two", SectionTwoStart.x, SectionTwoStart.y, SectionTwoEnd.x, SectionTwoEnd.y)
@@ -86,8 +86,7 @@ TextHandle = MachoMenuText(SecondSection, "SomeText")
 
 MachoMenuButton(SecondSection, "Change Text Example", function()
     MachoMenuSetText(TextHandle, "ChangedText")
-  end)
-
+end)
 
 -- Third tab
 ThirdSection = MachoMenuGroup(MenuWindow, "Section Three", SectionThreeStart.x, SectionThreeStart.y, SectionThreeEnd.x, SectionThreeEnd.y)
@@ -96,7 +95,7 @@ InputBoxHandle = MachoMenuInputbox(ThirdSection, "Input", "...")
 MachoMenuButton(ThirdSection, "Print Input", function()
     local LocatedText = MachoMenuGetInputbox(InputBoxHandle)
     print(LocatedText)
-  end)
+end)
 
 DropDownHandle = MachoMenuDropDown(ThirdSection, "Drop Down", 
     function(Index)
