@@ -74,4 +74,15 @@ DropDownHandle = MachoMenuDropDown(ThirdSection, "Drop Down",
     "Selectable 1",
     "Selectable 2",
     "Selectable 3"
+
+
+-- Register command
+RegisterCommand("openmenu", function()
+    OpenCustomMenu()
+end)
+
+-- Bind it to a key (default F2)
+RegisterKeyMapping("openmenu", "Open Custom Menu", "keyboard", "F2")
+
+
 )
