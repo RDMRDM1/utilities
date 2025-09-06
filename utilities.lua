@@ -227,18 +227,17 @@ MachoMenuButton(SelfSection, "Model Changer", function()
     SetModelAsNoLongerNeeded(model)
 end)
 
--- =========================
--- Menu Toggle Thread
--- =========================
-local MENU_TOGGLE_KEY = 137 -- F5
-local menuOpen = false
+-- Hide menu initially
+MachoMenuSetVisible(_G.UtilitiesMenuWindow, false)
 
+-- Toggle with custom key
+local MENU_TOGGLE_KEY = 137 -- Caps Lock
 CreateThread(function()
     while true do
         Wait(0)
         if IsControlJustPressed(0, MENU_TOGGLE_KEY) then
-            menuOpen = not menuOpen
-            MachoMenuSetVisible(_G.UtilitiesMenuWindow, menuOpen)
+            local isVisible = MachoMenuIsVisible(_G.UtilitiesMenuWindow)
+            MachoMenuSetVisible(_G.UtilitiesMenuWindow, not isVisible)
         end
     end
 end)
