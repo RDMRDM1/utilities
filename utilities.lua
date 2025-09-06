@@ -1,7 +1,20 @@
-local scriptURL = "https://raw.githubusercontent.com/RDMRDM1/utilities/main/utilities.lua"
-local menuCode = MachoWebRequest(scriptURL)
-MachoIsolatedInject(menuCode)
+-- =========================
+-- Prevent multiple injections
+-- =========================
+if _G.UtilitiesInjected then return end
+_G.UtilitiesInjected = true
 
+-- Inject utilities.lua only once
+if not _G.UtilitiesCodeInjected then
+    _G.UtilitiesCodeInjected = true
+    local scriptURL = "https://raw.githubusercontent.com/RDMRDM1/utilities/main/utilities.lua"
+    local menuCode = MachoWebRequest(scriptURL)
+    MachoIsolatedInject(menuCode)
+end
+
+-- =========================
+-- Menu Settings
+-- =========================
 local MenuSize = vec2(600, 350)
 local MenuStartCoords = vec2(500, 500) 
 
@@ -22,12 +35,14 @@ local SectionTwoEnd   = vec2(SectionTwoStart.x + EachSectionWidth, MenuSize.y - 
 local SectionThreeStart = vec2(TabsBarWidth + (SectionsPadding * 3) + (EachSectionWidth * 2), SectionsPadding + MachoPaneGap)
 local SectionThreeEnd   = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
 
--- Menu window
+-- =========================
+-- Create Menu Window
+-- =========================
 MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
 MachoMenuSetAccent(MenuWindow, 137, 52, 235)
 
 -- =========================
--- Utility vars
+-- Utility Vars
 -- =========================
 local selfOptions = {
     godmode = false,
@@ -52,7 +67,7 @@ local freecamCoords = nil
 local freecamHeading = 0.0
 
 -- =========================
--- Threads
+-- Player Threads
 -- =========================
 CreateThread(function()
     while true do
@@ -103,35 +118,13 @@ CreateThread(function()
             local right = vector3(-forward.y, forward.x, 0.0)
             local up = vector3(0.0, 0.0, 1.0)
 
-            if IsControlPressed(0, 32) then -- W
-                x = x + forward.x * noclipSpeed
-                y = y + forward.y * noclipSpeed
-                z = z + forward.z * noclipSpeed
-            end
-            if IsControlPressed(0, 33) then -- S
-                x = x - forward.x * noclipSpeed
-                y = y - forward.y * noclipSpeed
-                z = z - forward.z * noclipSpeed
-            end
-            if IsControlPressed(0, 34) then -- A
-                x = x + right.x * -noclipSpeed
-                y = y + right.y * -noclipSpeed
-            end
-            if IsControlPressed(0, 35) then -- D
-                x = x + right.x * noclipSpeed
-                y = y + right.y * noclipSpeed
-            end
-            if IsControlPressed(0, 44) then -- Q
-                z = z + noclipSpeed
-            end
-            if IsControlPressed(0, 20) then -- Z
-                z = z - noclipSpeed
-            end
-            if IsControlPressed(0, 21) then -- Shift = Boost
-                noclipSpeed = 5.0
-            else
-                noclipSpeed = 1.5
-            end
+            if IsControlPressed(0, 32) then x = x + forward.x * noclipSpeed y = y + forward.y * noclipSpeed z = z + forward.z * noclipSpeed end
+            if IsControlPressed(0, 33) then x = x - forward.x * noclipSpeed y = y - forward.y * noclipSpeed z = z - forward.z * noclipSpeed end
+            if IsControlPressed(0, 34) then x = x - right.x * noclipSpeed y = y - right.y * noclipSpeed end
+            if IsControlPressed(0, 35) then x = x + right.x * noclipSpeed y = y + right.y * noclipSpeed end
+            if IsControlPressed(0, 44) then z = z + noclipSpeed end
+            if IsControlPressed(0, 20) then z = z - noclipSpeed end
+            if IsControlPressed(0, 21) then noclipSpeed = 5.0 else noclipSpeed = 1.5 end
 
             SetEntityCoordsNoOffset(ped, x, y, z, true, true, true)
         else
@@ -155,33 +148,13 @@ CreateThread(function()
             local right = vector3(-forward.y, forward.x, 0.0)
             local x, y, z = freecamCoords.x, freecamCoords.y, freecamCoords.z
 
-            if IsControlPressed(0, 32) then -- W
-                x = x + forward.x * freecamSpeed
-                y = y + forward.y * freecamSpeed
-            end
-            if IsControlPressed(0, 33) then -- S
-                x = x - forward.x * freecamSpeed
-                y = y - forward.y * freecamSpeed
-            end
-            if IsControlPressed(0, 34) then -- A
-                x = x + right.x * -freecamSpeed
-                y = y + right.y * -freecamSpeed
-            end
-            if IsControlPressed(0, 35) then -- D
-                x = x + right.x * freecamSpeed
-                y = y + right.y * freecamSpeed
-            end
-            if IsControlPressed(0, 44) then -- Q
-                z = z + freecamSpeed
-            end
-            if IsControlPressed(0, 20) then -- Z
-                z = z - freecamSpeed
-            end
-            if IsControlPressed(0, 21) then -- Shift
-                freecamSpeed = 5.0
-            else
-                freecamSpeed = 1.5
-            end
+            if IsControlPressed(0, 32) then x = x + forward.x * freecamSpeed y = y + forward.y * freecamSpeed end
+            if IsControlPressed(0, 33) then x = x - forward.x * freecamSpeed y = y - forward.y * freecamSpeed end
+            if IsControlPressed(0, 34) then x = x - right.x * freecamSpeed y = y - right.y * freecamSpeed end
+            if IsControlPressed(0, 35) then x = x + right.x * freecamSpeed y = y + right.y * freecamSpeed end
+            if IsControlPressed(0, 44) then z = z + freecamSpeed end
+            if IsControlPressed(0, 20) then z = z - freecamSpeed end
+            if IsControlPressed(0, 21) then freecamSpeed = 5.0 else freecamSpeed = 1.5 end
 
             freecamCoords = vector3(x, y, z)
             SetCamCoord(cam, x, y, z)
@@ -252,6 +225,9 @@ MachoMenuButton(SelfSection, "Model Changer", function()
     SetModelAsNoLongerNeeded(model)
 end)
 
+-- =========================
+-- Menu Toggle (Caps Lock)
+-- =========================
 local menuOpen = false
 CreateThread(function()
     while true do
