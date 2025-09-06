@@ -59,12 +59,16 @@ MachoMenuButton(FirstSection, "Teleport", function()
   end)
 
 MachoMenuButton(FirstSection, "Troll", function()
-        
-  end)
+    -- Show SecondSection, hide FirstSection
+    MachoMenuSetVisible(FirstSection, false)
+    MachoMenuSetVisible(SecondSection, true)
+end)
 
 MachoMenuButton(FirstSection, "Vehicle", function()
-        
-  end)
+    -- Show ThirdSection, hide FirstSection
+    MachoMenuSetVisible(FirstSection, false)
+    MachoMenuSetVisible(ThirdSection, true)
+end)
 
 -- Second tab
 SecondSection = MachoMenuGroup(MenuWindow, "Section Two", SectionTwoStart.x, SectionTwoStart.y, SectionTwoEnd.x, SectionTwoEnd.y)
