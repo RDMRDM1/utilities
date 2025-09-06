@@ -29,10 +29,13 @@ MachoMenuSetAccent(MenuWindow, 150, 0, 0)
 
 
 -- First tab
-FirstSection = MachoMenuGroup(MenuWindow, "Section One", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
+FirstSection = MachoMenuGroup(MenuWindow, "Util.lua", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
 
 MachoMenuButton(FirstSection, "Close", function()
     MachoMenuDestroy(MenuWindow)
+  end)
+
+MachoMenuButton(FirstSection, "Self", function()
   end)
 
 -- Second tab
