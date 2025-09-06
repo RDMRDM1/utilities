@@ -1,243 +1,77 @@
--- =========================
--- Prevent multiple injections
--- =========================
-if _G.UtilitiesInjected then
-    -- Cleanup old menu if reinjecting
-    if _G.UtilitiesMenuWindow then
-        MachoMenuDestroy(_G.UtilitiesMenuWindow)
-        _G.UtilitiesMenuWindow = nil
-    end
-    return
-end
-_G.UtilitiesInjected = true
-
--- =========================
--- Menu Settings
--- =========================
 local MenuSize = vec2(600, 350)
-local MenuStartCoords = vec2(500, 500)
+local MenuStartCoords = vec2(500, 500) 
 
-local TabsBarWidth = 0
-local SectionChildWidth = MenuSize.x - TabsBarWidth
-local SectionsCount = 3
-local SectionsPadding = 10
-local MachoPaneGap = 10
+local TabsBarWidth = 0 -- The width of the tabs bar, height is assumed to be MenuHeight as it goes top to bottom
 
+local SectionChildWidth = MenuSize.x - TabsBarWidth -- The total size for sections on the left hand side
+local SectionsCount = 3 
+local SectionsPadding = 10 -- pixels between each section (that makes SetionCount + 1 = total padding areas)
+local MachoPaneGap = 10 -- Hard coded gap of accent at the top.
+
+-- Therefore each section width must be:
 local EachSectionWidth = (SectionChildWidth - (SectionsPadding * (SectionsCount + 1))) / SectionsCount
 
+
+-- Now you have each sections absolute width, you can calculate their X coordinate and Y coordinate
 local SectionOneStart = vec2(TabsBarWidth + (SectionsPadding * 1) + (EachSectionWidth * 0), SectionsPadding + MachoPaneGap)
-local SectionOneEnd   = vec2(SectionOneStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
+local SectionOneEnd = vec2(SectionOneStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
 
 local SectionTwoStart = vec2(TabsBarWidth + (SectionsPadding * 2) + (EachSectionWidth * 1), SectionsPadding + MachoPaneGap)
-local SectionTwoEnd   = vec2(SectionTwoStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
+local SectionTwoEnd = vec2(SectionTwoStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
 
 local SectionThreeStart = vec2(TabsBarWidth + (SectionsPadding * 3) + (EachSectionWidth * 2), SectionsPadding + MachoPaneGap)
-local SectionThreeEnd   = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
+local SectionThreeEnd = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
 
--- =========================
--- Create Menu Window
--- =========================
-_G.UtilitiesMenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
-MachoMenuSetAccent(_G.UtilitiesMenuWindow, 137, 52, 235)
+-- Create our window, MenuStartCoords is where the menu starts
+MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
 
--- =========================
--- Utility Vars
--- =========================
-local selfOptions = {
-    godmode = false,
-    invis = false,
-    noragdoll = false,
-    infStamina = false,
-    tinyPed = false,
-    noclip = false,
-    freecam = false,
-    superJump = false,
-    superPunch = false,
-    force3rd = false,
-    forceDriveby = false,
-    antiHeadshot = false,
-    antiFreeze = false,
-    antiBlack = false,
-}
+MachoMenuSetAccent(MenuWindow, 137, 52, 235)
 
-local noclipSpeed = 1.5
-local freecamSpeed = 1.5
-local freecamCoords = nil
-local freecamHeading = 0.0
 
--- =========================
--- Player Threads (Run Once)
--- =========================
-if not _G.UtilitiesThreadCreated then
-    _G.UtilitiesThreadCreated = true
+-- First tab
+FirstSection = MachoMenuGroup(MenuWindow, "Section One", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
 
-    CreateThread(function()
-        while true do
-            local ped = PlayerPedId()
+MachoMenuButton(FirstSection, "Close", function()
+    MachoMenuDestroy(MenuWindow)
+  end)
 
-            -- Godmode
-            SetEntityInvincible(ped, selfOptions.godmode)
+-- Second tab
+SecondSection = MachoMenuGroup(MenuWindow, "Section Two", SectionTwoStart.x, SectionTwoStart.y, SectionTwoEnd.x, SectionTwoEnd.y)
 
-            -- Invisibility
-            SetEntityVisible(ped, not selfOptions.invis, false)
-
-            -- No Ragdoll
-            SetPedCanRagdoll(ped, not selfOptions.noragdoll)
-
-            -- Infinite Stamina
-            if selfOptions.infStamina then
-                RestorePlayerStamina(PlayerId(), 1.0)
-            end
-
-            -- Tiny Ped
-            if selfOptions.tinyPed then
-                SetPedScale(ped, 0.5)
-            else
-                SetPedScale(ped, 1.0)
-            end
-
-            -- Super Jump
-            if selfOptions.superJump then
-                SetSuperJumpThisFrame(PlayerId())
-            end
-
-            -- Super Punch
-            if selfOptions.superPunch then
-                SetExplosiveMeleeThisFrame(PlayerId())
-            end
-
-            -- Anti-Headshot
-            SetPedSuffersCriticalHits(ped, not selfOptions.antiHeadshot)
-
-            -- Handle NoClip
-            if selfOptions.noclip then
-                SetEntityInvincible(ped, true)
-                SetEntityVisible(ped, false, false)
-                SetEntityCollision(ped, false, false)
-
-                local x, y, z = table.unpack(GetEntityCoords(ped))
-                local forward = GetEntityForwardVector(ped)
-                local right = vector3(-forward.y, forward.x, 0.0)
-
-                if IsControlPressed(0, 32) then x = x + forward.x * noclipSpeed y = y + forward.y * noclipSpeed z = z + forward.z * noclipSpeed end
-                if IsControlPressed(0, 33) then x = x - forward.x * noclipSpeed y = y - forward.y * noclipSpeed z = z - forward.z * noclipSpeed end
-                if IsControlPressed(0, 34) then x = x - right.x * noclipSpeed y = y - right.y * noclipSpeed end
-                if IsControlPressed(0, 35) then x = x + right.x * noclipSpeed y = y + right.y * noclipSpeed end
-                if IsControlPressed(0, 44) then z = z + noclipSpeed end
-                if IsControlPressed(0, 20) then z = z - noclipSpeed end
-                if IsControlPressed(0, 21) then noclipSpeed = 5.0 else noclipSpeed = 1.5 end
-
-                SetEntityCoordsNoOffset(ped, x, y, z, true, true, true)
-            else
-                SetEntityCollision(ped, true, true)
-                SetEntityVisible(ped, true, false)
-            end
-
-            -- Handle FreeCam
-            if selfOptions.freecam then
-                if not freecamCoords then
-                    freecamCoords = GetEntityCoords(ped)
-                    freecamHeading = GetEntityHeading(ped)
-                end
-
-                local cam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
-                SetCamCoord(cam, freecamCoords.x, freecamCoords.y, freecamCoords.z)
-                SetCamRot(cam, 0.0, 0.0, freecamHeading)
-                RenderScriptCams(true, false, 0, true, true)
-
-                local forward = GetEntityForwardVector(ped)
-                local right = vector3(-forward.y, forward.x, 0.0)
-                local x, y, z = freecamCoords.x, freecamCoords.y, freecamCoords.z
-
-                if IsControlPressed(0, 32) then x = x + forward.x * freecamSpeed y = y + forward.y * freecamSpeed end
-                if IsControlPressed(0, 33) then x = x - forward.x * freecamSpeed y = y - forward.y * freecamSpeed end
-                if IsControlPressed(0, 34) then x = x - right.x * freecamSpeed y = y - right.y * freecamSpeed end
-                if IsControlPressed(0, 35) then x = x + right.x * freecamSpeed y = y + right.y * freecamSpeed end
-                if IsControlPressed(0, 44) then z = z + freecamSpeed end
-                if IsControlPressed(0, 20) then z = z - freecamSpeed end
-                if IsControlPressed(0, 21) then freecamSpeed = 5.0 else freecamSpeed = 1.5 end
-
-                freecamCoords = vector3(x, y, z)
-                SetCamCoord(cam, x, y, z)
-            else
-                if freecamCoords then
-                    RenderScriptCams(false, false, 0, true, true)
-                    DestroyAllCams(true)
-                    freecamCoords = nil
-                end
-            end
-
-            Wait(0)
-        end
-    end)
-end
-
--- =========================
--- Self Tab (Section One)
--- =========================
-SelfSection = MachoMenuGroup(_G.UtilitiesMenuWindow, "Self", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
-
-MachoMenuCheckbox(SelfSection, "Godmode", function() selfOptions.godmode = true end, function() selfOptions.godmode = false end)
-MachoMenuCheckbox(SelfSection, "Invisibility", function() selfOptions.invis = true end, function() selfOptions.invis = false end)
-MachoMenuCheckbox(SelfSection, "No Ragdoll", function() selfOptions.noragdoll = true end, function() selfOptions.noragdoll = false end)
-MachoMenuCheckbox(SelfSection, "Infinite Stamina", function() selfOptions.infStamina = true end, function() selfOptions.infStamina = false end)
-MachoMenuCheckbox(SelfSection, "Tiny Ped", function() selfOptions.tinyPed = true end, function() selfOptions.tinyPed = false end)
-MachoMenuCheckbox(SelfSection, "No Clip", function() selfOptions.noclip = not selfOptions.noclip end)
-MachoMenuCheckbox(SelfSection, "Free Camera", function() selfOptions.freecam = not selfOptions.freecam end)
-MachoMenuCheckbox(SelfSection, "Super Jump", function() selfOptions.superJump = true end, function() selfOptions.superJump = false end)
-MachoMenuCheckbox(SelfSection, "Super Punch", function() selfOptions.superPunch = true end, function() selfOptions.superPunch = false end)
-MachoMenuCheckbox(SelfSection, "Force Third Person", function() SetFollowPedCamViewMode(1) end, function() SetFollowPedCamViewMode(0) end)
-MachoMenuCheckbox(SelfSection, "Force Driveby", function() SetPlayerCanDoDriveBy(PlayerId(), true) end, function() SetPlayerCanDoDriveBy(PlayerId(), false) end)
-MachoMenuCheckbox(SelfSection, "Anti-Headshot", function() selfOptions.antiHeadshot = true end, function() selfOptions.antiHeadshot = false end)
-MachoMenuCheckbox(SelfSection, "Anti-Freeze", function() selfOptions.antiFreeze = true end, function() selfOptions.antiFreeze = false end)
-MachoMenuCheckbox(SelfSection, "Anti-Blackscreen", function() selfOptions.antiBlack = true end, function() selfOptions.antiBlack = false end)
-
-MachoMenuButton(SelfSection, "Max Health / Armor", function()
-    local ped = PlayerPedId()
-    SetEntityHealth(ped, GetEntityMaxHealth(ped))
-    SetPedArmour(ped, 200)
+MenuSliderHandle = MachoMenuSlider(SecondSection, "Slider", 10, 0, 100, "%", 0, function(Value)
+    print("Slider updated with value ".. Value)
 end)
 
-MachoMenuButton(SelfSection, "Revive / Suicide", function()
-    local ped = PlayerPedId()
-    if IsEntityDead(ped) then
-        ResurrectPed(ped)
-        ClearPedTasksImmediately(ped)
-        SetEntityHealth(ped, GetEntityMaxHealth(ped))
-    else
-        SetEntityHealth(ped, 0)
+MachoMenuCheckbox(SecondSection, "Checkbox", 
+    function()
+        print("Enabled")
+    end,
+    function()
+        print("Disabled")
     end
-end)
+)
 
-MachoMenuButton(SelfSection, "Clear Task / Clear Vision", function()
-    ClearPedTasksImmediately(PlayerPedId())
-    ClearTimecycleModifier()
-end)
+TextHandle = MachoMenuText(SecondSection, "SomeText")
 
-MachoMenuButton(SelfSection, "Randomize Outfit", function()
-    local ped = PlayerPedId()
-    SetPedRandomComponentVariation(ped, true)
-end)
+MachoMenuButton(SecondSection, "Change Text Example", function()
+    MachoMenuSetText(TextHandle, "ChangedText")
+  end)
 
-MachoMenuButton(SelfSection, "Model Changer", function()
-    local model = GetHashKey("player_zero") -- Michael
-    RequestModel(model)
-    while not HasModelLoaded(model) do Wait(0) end
-    SetPlayerModel(PlayerId(), model)
-    SetModelAsNoLongerNeeded(model)
-end)
 
--- Hide menu initially
-MachoMenuSetVisible(_G.UtilitiesMenuWindow, false)
+-- Third tab
+ThirdSection = MachoMenuGroup(MenuWindow, "Section Three", SectionThreeStart.x, SectionThreeStart.y, SectionThreeEnd.x, SectionThreeEnd.y)
 
--- Toggle with custom key
-local MENU_TOGGLE_KEY = 137 -- Caps Lock
-CreateThread(function()
-    while true do
-        Wait(0)
-        if IsControlJustPressed(0, MENU_TOGGLE_KEY) then
-            local isVisible = MachoMenuIsVisible(_G.UtilitiesMenuWindow)
-            MachoMenuSetVisible(_G.UtilitiesMenuWindow, not isVisible)
-        end
-    end
-end)
+InputBoxHandle = MachoMenuInputbox(ThirdSection, "Input", "...")
+MachoMenuButton(ThirdSection, "Print Input", function()
+    local LocatedText = MachoMenuGetInputbox(InputBoxHandle)
+    print(LocatedText)
+  end)
+
+DropDownHandle = MachoMenuDropDown(ThirdSection, "Drop Down", 
+    function(Index)
+        print("New Value is " .. Index)
+    end, 
+    "Selectable 1",
+    "Selectable 2",
+    "Selectable 3"
+)
