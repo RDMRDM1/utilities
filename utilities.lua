@@ -224,17 +224,3 @@ MachoMenuButton(SelfSection, "Model Changer", function()
     SetPlayerModel(PlayerId(), model)
     SetModelAsNoLongerNeeded(model)
 end)
-
--- =========================
--- Menu Toggle (Caps Lock)
--- =========================
-local menuOpen = false
-CreateThread(function()
-    while true do
-        Wait(0)
-        if IsControlJustPressed(0, 137) then -- Caps Lock
-            menuOpen = not menuOpen
-            MachoMenuSetVisible(MenuWindow, menuOpen)
-        end
-    end
-end)
