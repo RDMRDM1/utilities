@@ -58,7 +58,6 @@ MachoMenuButton(FirstSection, "Settings", function()
 
 MachoMenuButton(FirstSection, "Server", function()
   end)
-
 -- Second tab
 SecondSection = MachoMenuGroup(MenuWindow, "Section Two", SectionTwoStart.x, SectionTwoStart.y, SectionTwoEnd.x, SectionTwoEnd.y)
 
