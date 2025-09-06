@@ -27,16 +27,8 @@ MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, M
 
 MachoMenuSetAccent(MenuWindow, 150, 0, 0)
 
-
 -- First tab
--- Original:
--- FirstSection = MachoMenuGroup(MenuWindow, "Util.lua", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
-
--- Make section slightly taller for bigger title
-local SectionOneStartModified = vec2(SectionOneStart.x, SectionOneStart.y - 10) -- move start up 10 px
-local SectionOneEndModified = vec2(SectionOneEnd.x, SectionOneEnd.y) -- keep same bottom
-
-FirstSection = MachoMenuGroup(MenuWindow, "Util.lua", SectionOneStartModified.x, SectionOneStartModified.y, SectionOneEndModified.x, SectionOneEndModified.y)
+FirstSection = MachoMenuGroup(MenuWindow, "Util.lua", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
 
 MachoMenuButton(FirstSection, "Close", function()
     MachoMenuDestroy(MenuWindow)
