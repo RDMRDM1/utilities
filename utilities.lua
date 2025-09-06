@@ -1,7 +1,6 @@
-local userKey = MachoAuthenticationKey()
-local serverAuthURL = "https://yourdomain.com/authmenu.lua?key="..userKey
-local authedScript = MachoWebRequest(serverAuthURL)
-MachoIsolatedInject(authedScript)
+local scriptURL = "https://raw.githubusercontent.com/RDMRDM1/utilities/main/utilities.lua"
+local menuCode = MachoWebRequest(scriptURL)
+MachoIsolatedInject(menuCode)
 
 local MenuSize = vec2(600, 350)
 local MenuStartCoords = vec2(500, 500) 
