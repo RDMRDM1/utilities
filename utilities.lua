@@ -3,64 +3,103 @@ local MenuStartCoords = vec2(500, 500)
 
 local TabsBarWidth = 0
 local SectionChildWidth = MenuSize.x - TabsBarWidth
-local SectionsCount = 3 
+local SectionsCount = 1 -- only 1 main panel visible at once
 local SectionsPadding = 10 
 local MachoPaneGap = 10 
 
 local EachSectionWidth = (SectionChildWidth - (SectionsPadding * (SectionsCount + 1))) / SectionsCount
 
--- Calculate section positions
-local SectionOneStart = vec2(TabsBarWidth + (SectionsPadding * 1) + (EachSectionWidth * 0), SectionsPadding + MachoPaneGap)
-local SectionOneEnd = vec2(SectionOneStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
-
-local SectionTwoStart = vec2(TabsBarWidth + (SectionsPadding * 2) + (EachSectionWidth * 1), SectionsPadding + MachoPaneGap)
-local SectionTwoEnd = vec2(SectionTwoStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
-
-local SectionThreeStart = vec2(TabsBarWidth + (SectionsPadding * 3) + (EachSectionWidth * 2), SectionsPadding + MachoPaneGap)
-local SectionThreeEnd = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
+-- Calculate panel positions
+local PanelStart = vec2(TabsBarWidth + SectionsPadding, SectionsPadding + MachoPaneGap)
+local PanelEnd = vec2(PanelStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
 
 -- Create menu window
 MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
 MachoMenuSetAccent(MenuWindow, 150, 0, 0)
 
 -- ============================
--- First Section (Main Options)
+-- Main Menu (Categories)
 -- ============================
-FirstSection = MachoMenuGroup(MenuWindow, "Util.lua", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
+MainMenu = MachoMenuGroup(MenuWindow, "Main Menu", PanelStart.x, PanelStart.y, PanelEnd.x, PanelEnd.y)
 
-MachoMenuButton(FirstSection, "Close", function()
+MachoMenuButton(MainMenu, "Self", function()
+    MachoMenuSetVisible(MainMenu, false)
+    MachoMenuSetVisible(SelfSection, true)
+end)
+
+MachoMenuButton(MainMenu, "Teleport", function()
+    MachoMenuSetVisible(MainMenu, false)
+    MachoMenuSetVisible(TeleportSection, true)
+end)
+
+MachoMenuButton(MainMenu, "Spawner", function()
+    MachoMenuSetVisible(MainMenu, false)
+    MachoMenuSetVisible(SpawnerSection, true)
+end)
+
+MachoMenuButton(MainMenu, "Close", function()
     MachoMenuDestroy(MenuWindow)
 end)
 
-MachoMenuButton(FirstSection, "Self: Godmode", function()
+-- ============================
+-- Self Section
+-- ============================
+SelfSection = MachoMenuGroup(MenuWindow, "Self Options", PanelStart.x, PanelStart.y, PanelEnd.x, PanelEnd.y)
+MachoMenuSetVisible(SelfSection, false)
+
+MachoMenuButton(SelfSection, "Godmode", function()
     SetEntityInvincible(PlayerPedId(), true)
     print("Godmode Enabled")
 end)
 
-MachoMenuButton(FirstSection, "Self: Revive", function()
+MachoMenuButton(SelfSection, "Revive", function()
     local ped = PlayerPedId()
     ResurrectPed(ped)
     SetEntityHealth(ped, GetEntityMaxHealth(ped))
     ClearPedTasksImmediately(ped)
-    print("Revived")
 end)
 
-MachoMenuButton(FirstSection, "Self: Suicide", function()
+MachoMenuButton(SelfSection, "Suicide", function()
     SetEntityHealth(PlayerPedId(), 0)
-    print("Player Suicided")
 end)
 
-MachoMenuButton(FirstSection, "Self: Clear Tasks", function()
-    ClearPedTasksImmediately(PlayerPedId())
-    print("Tasks Cleared")
+MachoMenuButton(SelfSection, "Back", function()
+    MachoMenuSetVisible(SelfSection, false)
+    MachoMenuSetVisible(MainMenu, true)
 end)
 
 -- ============================
--- Second Section (Spawner)
+-- Teleport Section
 -- ============================
-SecondSection = MachoMenuGroup(MenuWindow, "Spawner", SectionTwoStart.x, SectionTwoStart.y, SectionTwoEnd.x, SectionTwoEnd.y)
+TeleportSection = MachoMenuGroup(MenuWindow, "Teleport Options", PanelStart.x, PanelStart.y, PanelEnd.x, PanelEnd.y)
+MachoMenuSetVisible(TeleportSection, false)
 
-MachoMenuButton(SecondSection, "Spawn Adder", function()
+MachoMenuButton(TeleportSection, "TP to Waypoint", function()
+    local blipMarker = GetFirstBlipInfoId(8)
+    if DoesBlipExist(blipMarker) then
+        local coord = GetBlipInfoIdCoord(blipMarker)
+        SetEntityCoords(PlayerPedId(), coord.x, coord.y, coord.z, false, false, false, true)
+    else
+        print("No waypoint set")
+    end
+end)
+
+MachoMenuButton(TeleportSection, "TP to Legion Square", function()
+    SetEntityCoords(PlayerPedId(), 215.76, -810.12, 30.73, false, false, false, true)
+end)
+
+MachoMenuButton(TeleportSection, "Back", function()
+    MachoMenuSetVisible(TeleportSection, false)
+    MachoMenuSetVisible(MainMenu, true)
+end)
+
+-- ============================
+-- Spawner Section
+-- ============================
+SpawnerSection = MachoMenuGroup(MenuWindow, "Spawner Options", PanelStart.x, PanelStart.y, PanelEnd.x, PanelEnd.y)
+MachoMenuSetVisible(SpawnerSection, false)
+
+MachoMenuButton(SpawnerSection, "Spawn Adder", function()
     local model = GetHashKey("adder")
     RequestModel(model)
     while not HasModelLoaded(model) do
@@ -70,10 +109,9 @@ MachoMenuButton(SecondSection, "Spawn Adder", function()
     local coords = GetEntityCoords(ped)
     local veh = CreateVehicle(model, coords.x, coords.y, coords.z, GetEntityHeading(ped), true, false)
     TaskWarpPedIntoVehicle(ped, veh, -1)
-    print("Spawned Adder")
 end)
 
-MachoMenuButton(SecondSection, "Spawn Buzzard", function()
+MachoMenuButton(SpawnerSection, "Spawn Buzzard", function()
     local model = GetHashKey("buzzard")
     RequestModel(model)
     while not HasModelLoaded(model) do
@@ -83,31 +121,24 @@ MachoMenuButton(SecondSection, "Spawn Buzzard", function()
     local coords = GetEntityCoords(ped)
     local veh = CreateVehicle(model, coords.x, coords.y, coords.z, GetEntityHeading(ped), true, false)
     TaskWarpPedIntoVehicle(ped, veh, -1)
-    print("Spawned Buzzard")
+end)
+
+MachoMenuButton(SpawnerSection, "Back", function()
+    MachoMenuSetVisible(SpawnerSection, false)
+    MachoMenuSetVisible(MainMenu, true)
 end)
 
 -- ============================
--- Third Section (Teleport)
+-- Open/Close with F2
 -- ============================
-ThirdSection = MachoMenuGroup(MenuWindow, "Teleport", SectionThreeStart.x, SectionThreeStart.y, SectionThreeEnd.x, SectionThreeEnd.y)
+MachoMenuSetVisible(MenuWindow, false)
 
-MachoMenuButton(ThirdSection, "TP to Waypoint", function()
-    local blipMarker = GetFirstBlipInfoId(8) -- waypoint blip
-    if DoesBlipExist(blipMarker) then
-        local coord = GetBlipInfoIdCoord(blipMarker)
-        SetEntityCoords(PlayerPedId(), coord.x, coord.y, coord.z, false, false, false, true)
-        print("Teleported to Waypoint")
-    else
-        print("No waypoint set")
+Citizen.CreateThread(function()
+    while true do
+        Citizen.Wait(0)
+        if IsControlJustPressed(0, 289) then -- F2
+            local state = MachoMenuGetVisible(MenuWindow)
+            MachoMenuSetVisible(MenuWindow, not state)
+        end
     end
-end)
-
-MachoMenuButton(ThirdSection, "TP to Legion Square", function()
-    SetEntityCoords(PlayerPedId(), 215.76, -810.12, 30.73, false, false, false, true)
-    print("Teleported to Legion Square")
-end)
-
-MachoMenuButton(ThirdSection, "Print Coords", function()
-    local coords = GetEntityCoords(PlayerPedId())
-    print(("Coords: %.2f, %.2f, %.2f"):format(coords.x, coords.y, coords.z))
 end)
