@@ -117,10 +117,3 @@ DropDownHandle = MachoMenuDropDown(ThirdSection, "Drop Down",
     "Selectable 2",
     "Selectable 3"
 )
-
--- =========================
--- Open Menu Bind (Caps Lock)
--- =========================
-MachoBindKey("capslock", function()
-    MachoMenuSetVisible(MenuWindow, not MachoMenuIsVisible(MenuWindow))
-end)
