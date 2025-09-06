@@ -1,3 +1,34 @@
+-- === Key Authentication ===
+local AllowedKeys = {
+    "UTIL-7F9D-K2L8-1XQ3",
+    "UTIL-3PZ4-V8J1-Q9H2",
+    "UTIL-5M2K-T7B6-R4Y0",
+    "UTIL-9G1X-W3F5-L8V7",
+    "UTIL-2C8N-Q6Z9-P1R4",
+    "UTIL-4H7L-J5S2-K3T8",
+    "UTIL-8V0M-R1X6-D7B9",
+    "UTIL-6Y3Q-P9N2-Z4C1",
+    "UTIL-1K5J-T8L0-M7W3",
+    "UTIL-0F2H-V4R8-S6X5"
+}
+
+local CurrentKey = MachoAuthenticationKey()
+local KeyValid = false
+
+for _, Key in ipairs(AllowedKeys) do
+    if Key == CurrentKey then
+        KeyValid = true
+        break
+    end
+end
+
+if KeyValid then
+    print("Key is authenticated [" .. CurrentKey .. "]")
+else
+    print("Key is not authorized [" .. CurrentKey .. "]")
+    return -- stops the script if key is invalid
+end
+
 local MenuSize = vec2(600, 350)
 local MenuStartCoords = vec2(500, 500) 
 
