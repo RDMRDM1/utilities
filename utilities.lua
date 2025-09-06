@@ -230,7 +230,7 @@ end)
 -- =========================
 -- Menu Toggle Thread
 -- =========================
-local MENU_TOGGLE_KEY = 166 -- F5
+local MENU_TOGGLE_KEY = 137 -- F5
 local menuOpen = false
 
 CreateThread(function()
