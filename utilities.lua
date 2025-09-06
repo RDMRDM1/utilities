@@ -1,48 +1,48 @@
 local MenuSize = vec2(600, 350)
 local MenuStartCoords = vec2(500, 500) 
 
-local TabsBarWidth = 0 -- The width of the tabs bar, height is assumed to be MenuHeight as it goes top to bottom
+local TabsBarWidth = 0 -- width of tabs bar
+local SectionChildWidth = MenuSize.x - TabsBarWidth
+local SectionsCount = 5 -- now 5 sections
+local SectionsPadding = 10
+local MachoPaneGap = 10
 
-local SectionChildWidth = MenuSize.x - TabsBarWidth -- The total size for sections on the left hand side
-local SectionsCount = 3 
-local SectionsPadding = 10 -- pixels between each section (that makes SetionCount + 1 = total padding areas)
-local MachoPaneGap = 10 -- Hard coded gap of accent at the top.
-
--- Therefore each section width must be:
 local EachSectionWidth = (SectionChildWidth - (SectionsPadding * (SectionsCount + 1))) / SectionsCount
 
+-- Calculate start/end for each section
+local SectionStarts = {}
+local SectionEnds = {}
+for i = 1, SectionsCount do
+    SectionStarts[i] = vec2(TabsBarWidth + (SectionsPadding * i) + (EachSectionWidth * (i - 1)), SectionsPadding + MachoPaneGap)
+    SectionEnds[i] = vec2(SectionStarts[i].x + EachSectionWidth, MenuSize.y - SectionsPadding)
+end
 
--- Now you have each sections absolute width, you can calculate their X coordinate and Y coordinate
-local SectionOneStart = vec2(TabsBarWidth + (SectionsPadding * 1) + (EachSectionWidth * 0), SectionsPadding + MachoPaneGap)
-local SectionOneEnd = vec2(SectionOneStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
+-- Section names
+local SectionNames = {"Player", "Server", "Teleport", "Weapon", "Vehicle"}
 
-local SectionTwoStart = vec2(TabsBarWidth + (SectionsPadding * 2) + (EachSectionWidth * 1), SectionsPadding + MachoPaneGap)
-local SectionTwoEnd = vec2(SectionTwoStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
-
-local SectionThreeStart = vec2(TabsBarWidth + (SectionsPadding * 3) + (EachSectionWidth * 2), SectionsPadding + MachoPaneGap)
-local SectionThreeEnd = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
-
--- Create our window, MenuStartCoords is where the menu starts
+-- Create window
 MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
+MachoMenuSetAccent(MenuWindow, 137, 52, 235)
 
-MachoMenuSetAccent(MenuWindow, 137, 0, 0)
+-- Create all 5 sections
+local Sections = {}
+for i = 1, SectionsCount do
+    Sections[i] = MachoMenuGroup(MenuWindow, SectionNames[i], SectionStarts[i].x, SectionStarts[i].y, SectionEnds[i].x, SectionEnds[i].y)
 
+    -- Make section clickable even if nothing happens yet
+    MachoMenuButton(Sections[i], "Click Me", function()
+        print(SectionNames[i] .. " section clicked!")
+    end)
+end
 
--- First tab
-FirstSection = MachoMenuGroup(MenuWindow, "Section One", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
-
-MachoMenuButton(FirstSection, "Close", function()
-    MachoMenuDestroy(MenuWindow)
-  end)
-
--- Second tab
-SecondSection = MachoMenuGroup(MenuWindow, "Section Two", SectionTwoStart.x, SectionTwoStart.y, SectionTwoEnd.x, SectionTwoEnd.y)
-
-MenuSliderHandle = MachoMenuSlider(SecondSection, "Slider", 10, 0, 100, "%", 0, function(Value)
+-- Example of keeping existing features (optional)
+-- Slider example in Server section (2nd section)
+MenuSliderHandle = MachoMenuSlider(Sections[2], "Slider", 10, 0, 100, "%", 0, function(Value)
     print("Slider updated with value ".. Value)
 end)
 
-MachoMenuCheckbox(SecondSection, "Checkbox", 
+-- Checkbox example in Server section
+MachoMenuCheckbox(Sections[2], "Checkbox", 
     function()
         print("Enabled")
     end,
@@ -51,23 +51,21 @@ MachoMenuCheckbox(SecondSection, "Checkbox",
     end
 )
 
-TextHandle = MachoMenuText(SecondSection, "SomeText")
-
-MachoMenuButton(SecondSection, "Change Text Example", function()
+-- Text example in Server section
+TextHandle = MachoMenuText(Sections[2], "SomeText")
+MachoMenuButton(Sections[2], "Change Text Example", function()
     MachoMenuSetText(TextHandle, "ChangedText")
-  end)
+end)
 
-
--- Third tab
-ThirdSection = MachoMenuGroup(MenuWindow, "Section Three", SectionThreeStart.x, SectionThreeStart.y, SectionThreeEnd.x, SectionThreeEnd.y)
-
-InputBoxHandle = MachoMenuInputbox(ThirdSection, "Input", "...")
-MachoMenuButton(ThirdSection, "Print Input", function()
+-- Input box example in Third section (Teleport section)
+InputBoxHandle = MachoMenuInputbox(Sections[3], "Input", "...")
+MachoMenuButton(Sections[3], "Print Input", function()
     local LocatedText = MachoMenuGetInputbox(InputBoxHandle)
     print(LocatedText)
-  end)
+end)
 
-DropDownHandle = MachoMenuDropDown(ThirdSection, "Drop Down", 
+-- Drop down example in Third section
+DropDownHandle = MachoMenuDropDown(Sections[3], "Drop Down", 
     function(Index)
         print("New Value is " .. Index)
     end, 
@@ -75,3 +73,8 @@ DropDownHandle = MachoMenuDropDown(ThirdSection, "Drop Down",
     "Selectable 2",
     "Selectable 3"
 )
+
+-- Close button example in Player section (1st section)
+MachoMenuButton(Sections[1], "Close Menu", function()
+    MachoMenuDestroy(MenuWindow)
+end)
