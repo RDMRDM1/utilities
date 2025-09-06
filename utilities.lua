@@ -35,9 +35,6 @@ MachoMenuButton(FirstSection, "Close", function()
     MachoMenuDestroy(MenuWindow)
   end)
 
-MachoMenuButton(FirstSection, "Self", function()
-  end)
-
 -- Second tab
 SecondSection = MachoMenuGroup(MenuWindow, "Section Two", SectionTwoStart.x, SectionTwoStart.y, SectionTwoEnd.x, SectionTwoEnd.y)
 
