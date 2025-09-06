@@ -1,4 +1,6 @@
--- Key Authentication System
+-- =========================
+-- Key Redemption System
+-- =========================
 local AllowedKeys = {
     "UTIL-7F9D-K2L8-1XQ3",
     "UTIL-3PZ4-V8J1-Q9H2",
@@ -12,39 +14,44 @@ local AllowedKeys = {
     "UTIL-0F2H-V4R8-S6X5"
 }
 
--- Replace this with your method of getting the user's key
-local CurrentKey = MachoAuthenticationKey() 
-
-local KeyValid = false
-for i, key in ipairs(AllowedKeys) do
-    if key == CurrentKey then
-        KeyValid = true
-        break
+-- Function to redeem key
+local function RedeemKey()
+    local Key = MachoMenuInput("Enter your key:") -- Example input function
+    if not Key or Key == "" then
+        print("No key entered!")
+        return false
     end
+
+    for i, validKey in ipairs(AllowedKeys) do
+        if Key == validKey then
+            print("Key redeemed successfully! [" .. Key .. "]")
+            table.remove(AllowedKeys, i) -- Remove key so it cannot be reused
+            return true
+        end
+    end
+
+    print("Invalid key! [" .. Key .. "]")
+    return false
 end
 
-if KeyValid then
-    print("Key authenticated [" .. CurrentKey .. "]")
-else
-    print("Key not valid [" .. CurrentKey .. "]")
-    return -- Stop script if key is invalid
+-- Check key before opening menu
+if not RedeemKey() then
+    return -- Stop script if key invalid
 end
 
--- Original Menu Code Starts Here
+-- =========================
+-- Menu Setup
+-- =========================
 local MenuSize = vec2(600, 350)
 local MenuStartCoords = vec2(500, 500) 
 
-local TabsBarWidth = 0 -- The width of the tabs bar, height is assumed to be MenuHeight as it goes top to bottom
-
-local SectionChildWidth = MenuSize.x - TabsBarWidth -- The total size for sections on the left hand side
-local SectionsCount = 3 
-local SectionsPadding = 10 -- pixels between each section (that makes SetionCount + 1 = total padding areas)
-local MachoPaneGap = 10 -- Hard coded gap of accent at the top.
-
--- Therefore each section width must be:
+local TabsBarWidth = 0
+local SectionChildWidth = MenuSize.x - TabsBarWidth
+local SectionsCount = 3
+local SectionsPadding = 10
+local MachoPaneGap = 10
 local EachSectionWidth = (SectionChildWidth - (SectionsPadding * (SectionsCount + 1))) / SectionsCount
 
--- Now you have each sections absolute width, you can calculate their X coordinate and Y coordinate
 local SectionOneStart = vec2(TabsBarWidth + (SectionsPadding * 1) + (EachSectionWidth * 0), SectionsPadding + MachoPaneGap)
 local SectionOneEnd = vec2(SectionOneStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
 
@@ -54,19 +61,22 @@ local SectionTwoEnd = vec2(SectionTwoStart.x + EachSectionWidth, MenuSize.y - Se
 local SectionThreeStart = vec2(TabsBarWidth + (SectionsPadding * 3) + (EachSectionWidth * 2), SectionsPadding + MachoPaneGap)
 local SectionThreeEnd = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
 
--- Create our window, MenuStartCoords is where the menu starts
+-- Create window
 MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
-
 MachoMenuSetAccent(MenuWindow, 137, 52, 235)
+MachoMenuSetVisible(MenuWindow, false) -- Start hidden
 
--- First tab
+-- =========================
+-- Section One
+-- =========================
 FirstSection = MachoMenuGroup(MenuWindow, "Section One", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
-
 MachoMenuButton(FirstSection, "Close", function()
     MachoMenuDestroy(MenuWindow)
 end)
 
--- Second tab
+-- =========================
+-- Section Two
+-- =========================
 SecondSection = MachoMenuGroup(MenuWindow, "Section Two", SectionTwoStart.x, SectionTwoStart.y, SectionTwoEnd.x, SectionTwoEnd.y)
 
 MenuSliderHandle = MachoMenuSlider(SecondSection, "Slider", 10, 0, 100, "%", 0, function(Value)
@@ -88,7 +98,9 @@ MachoMenuButton(SecondSection, "Change Text Example", function()
     MachoMenuSetText(TextHandle, "ChangedText")
 end)
 
--- Third tab
+-- =========================
+-- Section Three
+-- =========================
 ThirdSection = MachoMenuGroup(MenuWindow, "Section Three", SectionThreeStart.x, SectionThreeStart.y, SectionThreeEnd.x, SectionThreeEnd.y)
 
 InputBoxHandle = MachoMenuInputbox(ThirdSection, "Input", "...")
@@ -105,3 +117,10 @@ DropDownHandle = MachoMenuDropDown(ThirdSection, "Drop Down",
     "Selectable 2",
     "Selectable 3"
 )
+
+-- =========================
+-- Open Menu Bind (Caps Lock)
+-- =========================
+MachoBindKey("capslock", function()
+    MachoMenuSetVisible(MenuWindow, not MachoMenuIsVisible(MenuWindow))
+end)
