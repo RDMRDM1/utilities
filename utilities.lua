@@ -106,3 +106,5 @@ DropDownHandle = MachoMenuDropDown(ThirdSection, "Drop Down",
     "Selectable 2",
     "Selectable 3"
 )
+
+MachoMenuSetKeybind(WindowHandle, 0x2E)
