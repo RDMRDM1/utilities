@@ -38,26 +38,6 @@ MachoMenuButton(FirstSection, "Close", function()
 MachoMenuButton(FirstSection, "Self", function()
   end)
 
-MachoMenuButton(FirstSection, "Teleport", function()
-  end)
-
-MachoMenuButton(FirstSection, "Vehicle", function()
-  end)
-
-MachoMenuButton(FirstSection, "Weapon", function()
-  end)
-
-MachoMenuButton(FirstSection, "Triggers", function()
-  end)
-
-MachoMenuButton(FirstSection, "Troll", function()
-  end)
-
-MachoMenuButton(FirstSection, "Settings", function()
-  end)
-
-MachoMenuButton(FirstSection, "Server", function()
-  end)
 -- Second tab
 SecondSection = MachoMenuGroup(MenuWindow, "Section Two", SectionTwoStart.x, SectionTwoStart.y, SectionTwoEnd.x, SectionTwoEnd.y)
 
