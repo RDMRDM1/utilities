@@ -1,12 +1,4 @@
 -- =========================
--- Prevent multiple injections
--- =========================
-if _G.MyMenuInjected then
-    return
-end
-_G.MyMenuInjected = true
-
--- =========================
 -- Menu Settings
 -- =========================
 local MenuSize = vec2(600, 350)
@@ -82,19 +74,3 @@ local DropDownHandle = MachoMenuDropDown(ThirdSection, "Drop Down",
     "Selectable 2",
     "Selectable 3"
 )
-
--- =========================
--- Menu Toggle Thread
--- =========================
-local MENU_TOGGLE_KEY = 137 -- CAPS LOCK (change to desired key if needed)
-local menuOpen = false
-
-CreateThread(function()
-    while true do
-        Wait(0)
-        if IsControlJustPressed(0, MENU_TOGGLE_KEY) then
-            menuOpen = not menuOpen
-            MachoMenuSetVisible(MenuWindow, menuOpen)
-        end
-    end
-end)
