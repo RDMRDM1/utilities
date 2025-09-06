@@ -25,8 +25,13 @@ local SectionThreeEnd   = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.
 -- Create Menu Window (starts hidden)
 -- =========================
 local MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
-MachoMenuSetAccent(MenuWindow, 137, 52, 235)
-MachoMenuSetVisible(MenuWindow, false) -- Start hidden
+MachoMenuSetAccent(MenuWindow, 137)
+
+-- Hide after a short delay to ensure MachoMenu initializes the window first
+CreateThread(function()
+    Wait(10) -- tiny wait for menu to initialize
+    MachoMenuSetVisible(MenuWindow, false)
+end)
 
 -- =========================
 -- Section One
