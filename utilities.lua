@@ -36,21 +36,27 @@ MachoMenuButton(FirstSection, "Close", function()
   end)
 
 MachoMenuButton(FirstSection, "Self", function()
+        
   end)
 
 MachoMenuButton(FirstSection, "Spawner", function()
+        
   end)
 
 MachoMenuButton(FirstSection, "Events", function()
+        
   end)
 
 MachoMenuButton(FirstSection, "Teleport", function()
+        
   end)
 
 MachoMenuButton(FirstSection, "Troll", function()
+        
   end)
 
 MachoMenuButton(FirstSection, "Vehicle", function()
+        
   end)
 
 -- Second tab
