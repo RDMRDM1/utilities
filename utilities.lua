@@ -25,7 +25,7 @@ local SectionThreeEnd = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.y 
 -- Create our window, MenuStartCoords is where the menu starts
 MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
 
-MachoMenuSetAccent(MenuWindow, 137, 0, 0)
+MachoMenuSetAccent(MenuWindow, 0, 0, 0)
 
 
 -- First tab
