@@ -1,3 +1,5 @@
+MachoMenuSetKeybind(WindowHandle, 0x2E)
+
 local MenuSize = vec2(600, 350)
 local MenuStartCoords = vec2(500, 500) 
 
@@ -98,5 +100,3 @@ DropDownHandle = MachoMenuDropDown(ThirdSection, "Drop Down",
     "Selectable 2",
     "Selectable 3"
 )
-
-MachoMenuSetKeybind(WindowHandle, 0x2E)
