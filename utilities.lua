@@ -76,3 +76,14 @@ DropDownHandle = MachoMenuDropDown(ThirdSection, "Drop Down",
     "Selectable 2",
     "Selectable 3"
 )
+
+--COLORS
+
+-- Background
+MachoMenuSetBackground(MenuWindow, 139, 0, 0)
+
+-- Accent Bar
+MachoMenuSetAccent(MenuWindow, 255, 102, 102)
+
+-- Text Color
+MachoMenuSetTextColor(MenuWindow, 255, 102, 102)
