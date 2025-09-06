@@ -1,10 +1,19 @@
 -- =========================
 -- Prevent multiple injections
 -- =========================
-if _G.UtilitiesInjected then return end
+if _G.UtilitiesInjected then
+    -- Cleanup old menu if reinjecting
+    if _G.UtilitiesMenuWindow then
+        MachoMenuDestroy(_G.UtilitiesMenuWindow)
+        _G.UtilitiesMenuWindow = nil
+    end
+    return
+end
 _G.UtilitiesInjected = true
 
+-- =========================
 -- Inject utilities.lua only once
+-- =========================
 if not _G.UtilitiesCodeInjected then
     _G.UtilitiesCodeInjected = true
     local scriptURL = "https://raw.githubusercontent.com/RDMRDM1/utilities/main/utilities.lua"
@@ -38,8 +47,11 @@ local SectionThreeEnd   = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.
 -- =========================
 -- Create Menu Window
 -- =========================
-MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
-MachoMenuSetAccent(MenuWindow, 137, 52, 235)
+if _G.UtilitiesMenuWindow then
+    MachoMenuDestroy(_G.UtilitiesMenuWindow)
+end
+_G.UtilitiesMenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
+MachoMenuSetAccent(_G.UtilitiesMenuWindow, 137, 52, 235)
 
 -- =========================
 -- Utility Vars
@@ -67,113 +79,119 @@ local freecamCoords = nil
 local freecamHeading = 0.0
 
 -- =========================
--- Player Threads
+-- Player Thread
 -- =========================
-CreateThread(function()
-    while true do
-        local ped = PlayerPedId()
+if not _G.UtilitiesThreadCreated then
+    _G.UtilitiesThreadCreated = true
+    CreateThread(function()
+        while true do
+            local ped = PlayerPedId()
 
-        -- Godmode
-        SetEntityInvincible(ped, selfOptions.godmode)
+            -- Godmode
+            SetEntityInvincible(ped, selfOptions.godmode)
 
-        -- Invisibility
-        SetEntityVisible(ped, not selfOptions.invis, false)
+            -- Invisibility
+            SetEntityVisible(ped, not selfOptions.invis, false)
 
-        -- No Ragdoll
-        SetPedCanRagdoll(ped, not selfOptions.noragdoll)
+            -- No Ragdoll
+            SetPedCanRagdoll(ped, not selfOptions.noragdoll)
 
-        -- Infinite Stamina
-        if selfOptions.infStamina then
-            RestorePlayerStamina(PlayerId(), 1.0)
-        end
-
-        -- Tiny Ped
-        if selfOptions.tinyPed then
-            SetPedScale(ped, 0.5)
-        else
-            SetPedScale(ped, 1.0)
-        end
-
-        -- Super Jump
-        if selfOptions.superJump then
-            SetSuperJumpThisFrame(PlayerId())
-        end
-
-        -- Super Punch
-        if selfOptions.superPunch then
-            SetExplosiveMeleeThisFrame(PlayerId())
-        end
-
-        -- Anti-Headshot
-        SetPedSuffersCriticalHits(ped, not selfOptions.antiHeadshot)
-
-        -- Handle NoClip
-        if selfOptions.noclip then
-            SetEntityInvincible(ped, true)
-            SetEntityVisible(ped, false, false)
-            SetEntityCollision(ped, false, false)
-
-            local x, y, z = table.unpack(GetEntityCoords(ped))
-            local forward = GetEntityForwardVector(ped)
-            local right = vector3(-forward.y, forward.x, 0.0)
-            local up = vector3(0.0, 0.0, 1.0)
-
-            if IsControlPressed(0, 32) then x = x + forward.x * noclipSpeed y = y + forward.y * noclipSpeed z = z + forward.z * noclipSpeed end
-            if IsControlPressed(0, 33) then x = x - forward.x * noclipSpeed y = y - forward.y * noclipSpeed z = z - forward.z * noclipSpeed end
-            if IsControlPressed(0, 34) then x = x - right.x * noclipSpeed y = y - right.y * noclipSpeed end
-            if IsControlPressed(0, 35) then x = x + right.x * noclipSpeed y = y + right.y * noclipSpeed end
-            if IsControlPressed(0, 44) then z = z + noclipSpeed end
-            if IsControlPressed(0, 20) then z = z - noclipSpeed end
-            if IsControlPressed(0, 21) then noclipSpeed = 5.0 else noclipSpeed = 1.5 end
-
-            SetEntityCoordsNoOffset(ped, x, y, z, true, true, true)
-        else
-            SetEntityCollision(ped, true, true)
-            SetEntityVisible(ped, true, false)
-        end
-
-        -- Handle FreeCam
-        if selfOptions.freecam then
-            if not freecamCoords then
-                freecamCoords = GetEntityCoords(ped)
-                freecamHeading = GetEntityHeading(ped)
+            -- Infinite Stamina
+            if selfOptions.infStamina then
+                RestorePlayerStamina(PlayerId(), 1.0)
             end
 
-            local cam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
-            SetCamCoord(cam, freecamCoords.x, freecamCoords.y, freecamCoords.z)
-            SetCamRot(cam, 0.0, 0.0, freecamHeading)
-            RenderScriptCams(true, false, 0, true, true)
-
-            local forward = GetEntityForwardVector(ped)
-            local right = vector3(-forward.y, forward.x, 0.0)
-            local x, y, z = freecamCoords.x, freecamCoords.y, freecamCoords.z
-
-            if IsControlPressed(0, 32) then x = x + forward.x * freecamSpeed y = y + forward.y * freecamSpeed end
-            if IsControlPressed(0, 33) then x = x - forward.x * freecamSpeed y = y - forward.y * freecamSpeed end
-            if IsControlPressed(0, 34) then x = x - right.x * freecamSpeed y = y - right.y * freecamSpeed end
-            if IsControlPressed(0, 35) then x = x + right.x * freecamSpeed y = y + right.y * freecamSpeed end
-            if IsControlPressed(0, 44) then z = z + freecamSpeed end
-            if IsControlPressed(0, 20) then z = z - freecamSpeed end
-            if IsControlPressed(0, 21) then freecamSpeed = 5.0 else freecamSpeed = 1.5 end
-
-            freecamCoords = vector3(x, y, z)
-            SetCamCoord(cam, x, y, z)
-        else
-            if freecamCoords then
-                RenderScriptCams(false, false, 0, true, true)
-                DestroyAllCams(true)
-                freecamCoords = nil
+            -- Tiny Ped
+            if selfOptions.tinyPed then
+                SetPedScale(ped, 0.5)
+            else
+                SetPedScale(ped, 1.0)
             end
-        end
 
-        Wait(0)
-    end
-end)
+            -- Super Jump
+            if selfOptions.superJump then
+                SetSuperJumpThisFrame(PlayerId())
+            end
+
+            -- Super Punch
+            if selfOptions.superPunch then
+                SetExplosiveMeleeThisFrame(PlayerId())
+            end
+
+            -- Anti-Headshot
+            SetPedSuffersCriticalHits(ped, not selfOptions.antiHeadshot)
+
+            -- =========================
+            -- Handle NoClip
+            -- =========================
+            if selfOptions.noclip then
+                SetEntityInvincible(ped, true)
+                SetEntityVisible(ped, false, false)
+                SetEntityCollision(ped, false, false)
+
+                local x, y, z = table.unpack(GetEntityCoords(ped))
+                local forward = GetEntityForwardVector(ped)
+                local right = vector3(-forward.y, forward.x, 0.0)
+
+                if IsControlPressed(0, 32) then x = x + forward.x * noclipSpeed y = y + forward.y * noclipSpeed z = z + forward.z * noclipSpeed end
+                if IsControlPressed(0, 33) then x = x - forward.x * noclipSpeed y = y - forward.y * noclipSpeed z = z - forward.z * noclipSpeed end
+                if IsControlPressed(0, 34) then x = x - right.x * noclipSpeed y = y - right.y * noclipSpeed end
+                if IsControlPressed(0, 35) then x = x + right.x * noclipSpeed y = y + right.y * noclipSpeed end
+                if IsControlPressed(0, 44) then z = z + noclipSpeed end
+                if IsControlPressed(0, 20) then z = z - noclipSpeed end
+                if IsControlPressed(0, 21) then noclipSpeed = 5.0 else noclipSpeed = 1.5 end
+
+                SetEntityCoordsNoOffset(ped, x, y, z, true, true, true)
+            else
+                SetEntityCollision(ped, true, true)
+                SetEntityVisible(ped, true, false)
+            end
+
+            -- =========================
+            -- Handle FreeCam
+            -- =========================
+            if selfOptions.freecam then
+                if not freecamCoords then
+                    freecamCoords = GetEntityCoords(ped)
+                    freecamHeading = GetEntityHeading(ped)
+                end
+
+                local cam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
+                SetCamCoord(cam, freecamCoords.x, freecamCoords.y, freecamCoords.z)
+                SetCamRot(cam, 0.0, 0.0, freecamHeading)
+                RenderScriptCams(true, false, 0, true, true)
+
+                local forward = GetEntityForwardVector(ped)
+                local right = vector3(-forward.y, forward.x, 0.0)
+                local x, y, z = freecamCoords.x, freecamCoords.y, freecamCoords.z
+
+                if IsControlPressed(0, 32) then x = x + forward.x * freecamSpeed y = y + forward.y * freecamSpeed end
+                if IsControlPressed(0, 33) then x = x - forward.x * freecamSpeed y = y - forward.y * freecamSpeed end
+                if IsControlPressed(0, 34) then x = x - right.x * freecamSpeed y = y - right.y * freecamSpeed end
+                if IsControlPressed(0, 35) then x = x + right.x * freecamSpeed y = y + right.y * freecamSpeed end
+                if IsControlPressed(0, 44) then z = z + freecamSpeed end
+                if IsControlPressed(0, 20) then z = z - freecamSpeed end
+                if IsControlPressed(0, 21) then freecamSpeed = 5.0 else freecamSpeed = 1.5 end
+
+                freecamCoords = vector3(x, y, z)
+                SetCamCoord(cam, x, y, z)
+            else
+                if freecamCoords then
+                    RenderScriptCams(false, false, 0, true, true)
+                    DestroyAllCams(true)
+                    freecamCoords = nil
+                end
+            end
+
+            Wait(0)
+        end
+    end)
+end
 
 -- =========================
 -- Self Tab (Section One)
 -- =========================
-SelfSection = MachoMenuGroup(MenuWindow, "Self", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
+SelfSection = MachoMenuGroup(_G.UtilitiesMenuWindow, "Self", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
 
 MachoMenuCheckbox(SelfSection, "Godmode", function() selfOptions.godmode = true end, function() selfOptions.godmode = false end)
 MachoMenuCheckbox(SelfSection, "Invisibility", function() selfOptions.invis = true end, function() selfOptions.invis = false end)
@@ -224,3 +242,20 @@ MachoMenuButton(SelfSection, "Model Changer", function()
     SetPlayerModel(PlayerId(), model)
     SetModelAsNoLongerNeeded(model)
 end)
+
+-- =========================
+-- Toggle Menu Thread
+-- =========================
+if not _G.UtilitiesMenuToggleThread then
+    _G.UtilitiesMenuToggleThread = true
+    local menuOpen = false
+    CreateThread(function()
+        while true do
+            Wait(0)
+            if IsControlJustPressed(0, 137) then -- Caps Lock
+                menuOpen = not menuOpen
+                MachoMenuSetVisible(_G.UtilitiesMenuWindow, menuOpen)
+            end
+        end
+    end)
+end
