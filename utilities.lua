@@ -1,5 +1,3 @@
-MachoMenuSetKeybind(WindowHandle, 0x2E)
-
 local MenuSize = vec2(600, 350)
 local MenuStartCoords = vec2(500, 500) 
 
@@ -28,6 +26,8 @@ local SectionThreeEnd = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.y 
 MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
 
 MachoMenuSetAccent(MenuWindow, 150, 0, 0)
+
+MachoMenuSetKeybind(WindowHandle, 0x2E)
 
 -- First tab
 FirstSection = MachoMenuGroup(MenuWindow, "Util.lua", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
