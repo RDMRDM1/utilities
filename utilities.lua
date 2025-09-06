@@ -111,18 +111,3 @@ MachoMenuButton(ThirdSection, "Print Coords", function()
     local coords = GetEntityCoords(PlayerPedId())
     print(("Coords: %.2f, %.2f, %.2f"):format(coords.x, coords.y, coords.z))
 end)
-
--- ============================
--- Open/Close with Caps Lock
--- ============================
-MachoMenuSetVisible(MenuWindow, false)
-
-Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(0)
-        if IsControlJustPressed(0, 137) then -- Caps Lock
-            local state = MachoMenuGetVisible(MenuWindow)
-            MachoMenuSetVisible(MenuWindow, not state)
-        end
-    end
-end)
