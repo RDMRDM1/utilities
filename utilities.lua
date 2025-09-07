@@ -1,101 +1,80 @@
---========================================================
-                 -- UTILITIES.LUA --
---========================================================
+local MenuSize = vec2(800, 500)
+local MenuStartCoords = vec2(300, 200)
 
-local MenuSize = vec2(600, 350)
-local MenuStartCoords = vec2(500, 500)
-local TabsBarWidth = 90
-local SectionsPadding = 10
-local MachoPaneGap = 10
-local TabNames = {"Self", "Server", "Teleport", "Weapon", "Vehicle", "Animations", "Triggers", "Settings"}
+local SidebarWidth = 140
+local PanelGap = 12
+local PanelWidth = (MenuSize.x - SidebarWidth - PanelGap) / 2
 
 local MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
-MachoMenuSetAccent(MenuWindow, 150, 0, 0)
+MachoMenuSetAccent(MenuWindow, 0, 120, 255) -- Blue accent
 
-local function makeTab(tabName, xStart, yStart, xEnd, yEnd)
-    return MachoMenuGroup(MenuWindow, tabName, xStart, yStart, xEnd, yEnd)
+-- Sidebar Group (Tabbed buttons)
+local SidebarGroup = MachoMenuGroup(MenuWindow, "Menu", 0, 0, SidebarWidth, MenuSize.y)
+
+local tabs = {
+  "Player", "Server", "Teleport", "Weapon",
+  "Vehicle", "Emotes", "Events", "Settings"
+}
+
+local selectedTab = 1
+
+local function selectTab(index)
+  selectedTab = index
+  -- Logic to refresh visibility could go here if needed
 end
 
--- Calculating per-section coordinates dynamically for eight tabs
-local SectionChildWidth = MenuSize.x - TabsBarWidth
-local SectionsCount = #TabNames
-local EachSectionWidth = (SectionChildWidth - (SectionsPadding * (SectionsCount + 1))) / SectionsCount
-
-local TabSections = {}
-for i, name in ipairs(TabNames) do
-    local x1 = TabsBarWidth + (SectionsPadding * i) + (EachSectionWidth * (i - 1))
-    local y1 = SectionsPadding + MachoPaneGap
-    local x2 = x1 + EachSectionWidth
-    local y2 = MenuSize.y - SectionsPadding
-    TabSections[i] = makeTab(name, x1, y1, x2, y2)
+for i, tabName in ipairs(tabs) do
+  MachoMenuButton(SidebarGroup, tabName, function()
+    selectTab(i)
+  end)
 end
 
--- ######################### SELF TAB #########################
-local selfTab = TabSections[1]
+-- Left panel and right panel (content)
+local LeftPanel = MachoMenuGroup(MenuWindow, "LeftPanel", SidebarWidth + PanelGap, 0, SidebarWidth + PanelGap + PanelWidth, MenuSize.y)
+local RightPanel = MachoMenuGroup(MenuWindow, "RightPanel", SidebarWidth + PanelGap + PanelWidth + PanelGap, 0, MenuSize.x, MenuSize.y)
 
-MachoMenuCheckbox(selfTab, "Godmode/Invincibility", function() -- on enable
-    -- logic here
-end, function() -- on disable
-    -- logic here
+-- Scrollable container note: Add scroll logic if Macho supports or repeat menu creation on tab switch.
+
+-- === Player Tab Example ===
+if selectedTab == 1 then
+  -- Left Panel Controls (toggles)
+  MachoMenuText(LeftPanel, "Player Options")
+  MachoMenuCheckbox(LeftPanel, "Godmode", function() end, function() end)
+  MachoMenuCheckbox(LeftPanel, "Invisibility", function() end, function() end)
+  MachoMenuCheckbox(LeftPanel, "No Ragdoll", function() end, function() end)
+  MachoMenuCheckbox(LeftPanel, "Infinite Stamina", function() end, function() end)
+  MachoMenuCheckbox(LeftPanel, "Freecam", function() end, function() end)
+  MachoMenuCheckbox(LeftPanel, "No Clip", function() end, function() end)
+  MachoMenuCheckbox(LeftPanel, "Fly", function() end, function() end)
+  MachoMenuCheckbox(LeftPanel, "Super Punch", function() end, function() end)
+  MachoMenuCheckbox(LeftPanel, "Super Strength", function() end, function() end)
+  MachoMenuCheckbox(LeftPanel, "Super Jump", function() end, function() end)
+  MachoMenuCheckbox(LeftPanel, "Throw People From Vehicle", function() end, function() end)
+
+  -- Right Panel Controls (sliders & buttons)
+  MachoMenuText(RightPanel, "Misc")
+  MachoMenuSlider(RightPanel, "Health Amount", 100, 0, 100, "%", 1, function(value)
+    -- Implement health percentage set here
+  end)
+  MachoMenuSlider(RightPanel, "Armor Amount", 100, 0, 100, "%", 1, function(value)
+    -- Implement armor percentage set here
+  end)
+  local modelInput = MachoMenuInputbox(RightPanel, "Model Changer", "...")
+  MachoMenuButton(RightPanel, "Change Model", function()
+    local model = MachoMenuGetInputbox(modelInput)
+    -- Change model logic here
+  end)
+  MachoMenuButton(RightPanel, "Heal", function() end)
+  MachoMenuButton(RightPanel, "Armor", function() end)
+  MachoMenuButton(RightPanel, "Revive", function() end)
+  MachoMenuButton(RightPanel, "Native Revive", function() end)
+  MachoMenuButton(RightPanel, "Suicide", function() end)
+  MachoMenuButton(RightPanel, "Clear Task", function() end)
+end
+
+-- Add similar conditional blocks for tabs 2 to 8 with their respective options as previously detailed
+
+-- Close button always visible on left
+MachoMenuButton(SidebarGroup, "Close Menu", function()
+  MachoMenuDestroy(MenuWindow)
 end)
-MachoMenuCheckbox(selfTab, "Invisibility", function() end, function() end)
-MachoMenuCheckbox(selfTab, "No Ragdoll", function() end, function() end)
-MachoMenuCheckbox(selfTab, "Infinite Stamina", function() end, function() end)
-MachoMenuCheckbox(selfTab, "Tiny Ped", function() end, function() end)
-MachoMenuCheckbox(selfTab, "No Clip", function() end, function() end)
-MachoMenuCheckbox(selfTab, "Free Camera", function() end, function() end)
-MachoMenuCheckbox(selfTab, "Super Jump", function() end, function() end)
-MachoMenuCheckbox(selfTab, "Super Punch", function() end, function() end)
-MachoMenuCheckbox(selfTab, "Force Third Person", function() end, function() end)
-MachoMenuCheckbox(selfTab, "Force Driveby", function() end, function() end)
-MachoMenuCheckbox(selfTab, "Anti-Headshot", function() end, function() end)
-MachoMenuCheckbox(selfTab, "Anti-Freeze", function() end, function() end)
-MachoMenuCheckbox(selfTab, "Anti-Blackscreen", function() end, function() end)
-MachoMenuButton(selfTab, "Max Health/Armor", function() end)
-MachoMenuButton(selfTab, "Revive", function() end)
-MachoMenuButton(selfTab, "Suicide", function() end)
-MachoMenuButton(selfTab, "Clear Task", function() end)
-MachoMenuButton(selfTab, "Clear Vision", function() end)
-MachoMenuButton(selfTab, "Randomize Outfit", function() end)
-MachoMenuInputbox(selfTab, "Model Changer", "Enter model name")
-
--- ######################### SERVER TAB #########################
-local serverTab = TabSections[2]
-
-MachoMenuButton(serverTab, "Kill Player", function() end)
-MachoMenuButton(serverTab, "Taze Player", function() end)
-MachoMenuButton(serverTab, "Explode Player", function() end)
-MachoMenuButton(serverTab, "Teleport To Player", function() end)
-MachoMenuButton(serverTab, "Kick From Vehicle", function() end)
-MachoMenuButton(serverTab, "Freeze Player", function() end)
-MachoMenuButton(serverTab, "Glitch Player", function() end)
-MachoMenuButton(serverTab, "Limbo Player", function() end)
-MachoMenuButton(serverTab, "Copy Appearance", function() end)
-MachoMenuButton(serverTab, "Spectate Player", function() end)
-MachoMenuButton(serverTab, "Crash Nearby", function() end)
-MachoMenuButton(serverTab, "Explode All Players", function() end)
-MachoMenuButton(serverTab, "Explode All Vehicles", function() end)
-MachoMenuButton(serverTab, "Delete All Vehicles", function() end)
-MachoMenuButton(serverTab, "Delete All Peds", function() end)
-MachoMenuButton(serverTab, "Delete All Objects", function() end)
-MachoMenuButton(serverTab, "Kill All", function() end)
-MachoMenuButton(serverTab, "Permanent Kill All", function() end)
-
--- ######################### TELEPORT TAB #########################
-local teleportTab = TabSections[3]
-
-MachoMenuInputbox(teleportTab, "Teleport To Coords", "x, y, z")
-MachoMenuButton(teleportTab, "Teleport To Waypoint", function() end)
-local locations = {"FIB Building", "Mission Row PD", "Pillbox Hospital", "Del Perro Pier", "Grove Street", "Legion Square",
-                   "LS Customs", "Maze Bank", "Mirror Park", "Vespucci Beach", "Vinewood", "Sandy Shores"}
-for _, location in ipairs(locations) do
-    MachoMenuButton(teleportTab, "Teleport: "..location, function() end)
-end
-MachoMenuButton(teleportTab, "Print Current Coords", function() end)
-
--- ###### (Repeat this grouping/filling process for Weapon, Vehicle, Animations, Triggers, Settings tabs also, using the structure provided above) ######
-
--- Tip: For each button/checkbox, connect the logic required for FiveM via native calls or triggers.
-
--- Main close button
-MachoMenuButton(TabSections[1], "Close", function() MachoMenuDestroy(MenuWindow) end)
