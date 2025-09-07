@@ -31,11 +31,6 @@ local tabs = {
 }
 local selectedTab = 1
 
-local function clearGroup(group)
-  -- Destroy or clear all existing controls in the group for refresh
-  MachoMenuDestroyGroup(group)
-end
-
 local function rebuildContent()
   clearGroup(SectionTwoGroup)
   clearGroup(SectionThreeGroup)
