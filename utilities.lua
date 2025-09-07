@@ -18,9 +18,26 @@ local playerId = PlayerId()
 local tabs = {"Player", "Server", "Teleport", "Weapon", "Vehicle", "Animations", "Triggers", "Settings"}
 local selectedTab = 1
 
+local isNoClipActive = false
+
+-- No Clip toggle event handler placeholder
+RegisterNetEvent("macho:EnableNoClip")
+AddEventHandler("macho:EnableNoClip", function(enabled)
+  isNoClipActive = enabled
+  -- You need to implement your actual NoClip logic here.
+  -- Example: enable free flight, disable collisions, show visual indicator, etc.
+  print("NoClip toggled: ", isNoClipActive)
+end)
+
+-- Bind key "U" to toggle NoClip
+RegisterCommand("toggleNoClip", function()
+  isNoClipActive = not isNoClipActive
+  TriggerEvent("macho:EnableNoClip", isNoClipActive)
+end, false)
+RegisterKeyMapping("toggleNoClip", "Toggle NoClip", "keyboard", "U")
+
 local function clearPanels()
-  -- Depending on Macho API, clear existing content here
-  -- Placeholder: might destroy and recreate groups or reset state
+  -- Placeholder: depends on Macho API. Must clear previous menu items when switching tabs.
 end
 
 local function selectTab(index)
@@ -35,7 +52,46 @@ local function selectTab(index)
     MachoMenuCheckbox(LeftPanel, "Invisibility",
       function() SetEntityVisible(playerPed, false, false) end,
       function() SetEntityVisible(playerPed, true, false) end)
-    -- Other toggles ...
+    MachoMenuCheckbox(LeftPanel, "No Ragdoll",
+      function() SetPedCanRagdoll(playerPed, false) end,
+      function() SetPedCanRagdoll(playerPed, true) end)
+    MachoMenuCheckbox(LeftPanel, "Infinite Stamina",
+      function() SetPlayerUnlimitedStamina(playerId, true) end,
+      function() SetPlayerUnlimitedStamina(playerId, false) end)
+    MachoMenuCheckbox(LeftPanel, "Tiny Ped",
+      function() SetEntityScale(playerPed, 0.5) end,
+      function() SetEntityScale(playerPed, 1.0) end)
+    MachoMenuCheckbox(LeftPanel, "No Clip",
+      function() 
+        isNoClipActive = true
+        TriggerEvent("macho:EnableNoClip", true)
+      end,
+      function()
+        isNoClipActive = false
+        TriggerEvent("macho:EnableNoClip", false)
+      end)
+    MachoMenuCheckbox(LeftPanel, "Free Camera",
+      function() TriggerEvent("macho:EnableFreeCam", true) end,
+      function() TriggerEvent("macho:EnableFreeCam", false) end)
+    MachoMenuCheckbox(LeftPanel, "Super Jump", function() SetSuperJumpThisFrame(playerId) end, function() end)
+    MachoMenuCheckbox(LeftPanel, "Super Punch",
+      function() TriggerEvent("macho:EnableSuperPunch", true) end,
+      function() TriggerEvent("macho:EnableSuperPunch", false) end)
+    MachoMenuCheckbox(LeftPanel, "Force Third Person",
+      function() SetFollowPedCamViewMode(1) end,
+      function() SetFollowPedCamViewMode(0) end)
+    MachoMenuCheckbox(LeftPanel, "Force Driveby",
+      function() SetPlayerCanDoDriveBy(playerId, true) end,
+      function() SetPlayerCanDoDriveBy(playerId, false) end)
+    MachoMenuCheckbox(LeftPanel, "Anti-Headshot",
+      function() TriggerEvent("macho:AntiHeadshotEnable", true) end,
+      function() TriggerEvent("macho:AntiHeadshotEnable", false) end)
+    MachoMenuCheckbox(LeftPanel, "Anti-Freeze",
+      function() TriggerEvent("macho:AntiFreezeEnable", true) end,
+      function() TriggerEvent("macho:AntiFreezeEnable", false) end)
+    MachoMenuCheckbox(LeftPanel, "Anti-Blackscreen",
+      function() TriggerEvent("macho:AntiBlackScreenEnable", true) end,
+      function() TriggerEvent("macho:AntiBlackScreenEnable", false) end)
 
     MachoMenuText(RightPanel, "Misc")
     local modelInput = MachoMenuInputbox(RightPanel, "Model Changer", "Enter model name")
@@ -52,6 +108,9 @@ local function selectTab(index)
     MachoMenuButton(RightPanel, "Armor", function() SetPedArmour(playerPed, 100) end)
     MachoMenuButton(RightPanel, "Revive", function() NetworkResurrectLocalPlayer(GetEntityCoords(playerPed), true, true, false) ClearPedTasksImmediately(playerPed) end)
     MachoMenuButton(RightPanel, "Suicide", function() SetEntityHealth(playerPed, 0) end)
+    MachoMenuButton(RightPanel, "Clear Task", function() ClearPedTasksImmediately(playerPed) end)
+    MachoMenuButton(RightPanel, "Clear Vision", function() ClearTimecycleModifier() end)
+    MachoMenuButton(RightPanel, "Randomize Outfit", function() TriggerEvent("macho:RandomizeOutfit") end)
 
   elseif index == 5 then -- Vehicle Tab
     MachoMenuText(LeftPanel, "Vehicle Options")
@@ -76,10 +135,9 @@ local function selectTab(index)
       end
     end)
 
-    -- Other Vehicle controls...
+    -- Add other vehicle buttons/toggles here
 
   else
-    -- Implement other tabs similarly or add placeholder messages:
     MachoMenuText(LeftPanel, "Tab " .. tabs[index] .. " features coming soon!")
   end
 end
