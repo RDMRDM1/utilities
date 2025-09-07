@@ -18,11 +18,10 @@ local SectionTwoEnd = vec2(SectionTwoStart.x + EachSectionWidth, MenuSize.y - Se
 
 local SectionThreeStart = vec2(TabsBarWidth + (SectionsPadding * 3) + (EachSectionWidth * 2), SectionsPadding + MachoPaneGap)
 local SectionThreeEnd = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
+local MenuWindow = MachoMenuTabbedWindow('Nigga', 400, 400, 400, 100, 100, 120)
+MachoMenuSetAccent(MenuWindow, 0, 120, 255)
 
-local MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
-MachoMenuSetAccent(MenuWindow, 135, 0, 0)
-
-local SectionOneGroup = MachoMenuGroup(MenuWindow, "Util.lua", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
+local SectionOneGroup = MachoMenuGroup(MenuWindow, "SectionOne", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
 local SectionTwoGroup = MachoMenuGroup(MenuWindow, "SectionTwo", SectionTwoStart.x, SectionTwoStart.y, SectionTwoEnd.x, SectionTwoEnd.y)
 local SectionThreeGroup = MachoMenuGroup(MenuWindow, "SectionThree", SectionThreeStart.x, SectionThreeStart.y, SectionThreeEnd.x, SectionThreeEnd.y)
 
