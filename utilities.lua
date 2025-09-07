@@ -1,77 +1,93 @@
-local MenuSize = vec2(800, 500)
-local MenuStartCoords = vec2(300, 200)
+local MenuSize = vec2(600, 350)
+local MenuStartCoords = vec2(500, 500)
 
-local SidebarWidth = 140
-local PanelGap = 12
-local PanelWidth = (MenuSize.x - SidebarWidth - PanelGap) / 2
+local TabsBarWidth = 0
+local SectionsCount = 3
+local SectionsPadding = 10
+local MachoPaneGap = 10
+
+local SectionChildWidth = MenuSize.x - TabsBarWidth
+local EachSectionWidth = (SectionChildWidth - (SectionsPadding * (SectionsCount + 1))) / SectionsCount
+
+local SectionOneStart = vec2(TabsBarWidth + (SectionsPadding * 1) + (EachSectionWidth * 0), SectionsPadding + MachoPaneGap)
+local SectionOneEnd = vec2(SectionOneStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
+
+local SectionTwoStart = vec2(TabsBarWidth + (SectionsPadding * 2) + (EachSectionWidth * 1), SectionsPadding + MachoPaneGap)
+local SectionTwoEnd = vec2(SectionTwoStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
+
+local SectionThreeStart = vec2(TabsBarWidth + (SectionsPadding * 3) + (EachSectionWidth * 2), SectionsPadding + MachoPaneGap)
+local SectionThreeEnd = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
 
 local MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
-MachoMenuSetAccent(MenuWindow, 0, 120, 255) -- Blue accent
+MachoMenuSetAccent(MenuWindow, 255, 0, 0) -- Red accent
 
-local SidebarGroup = MachoMenuGroup(MenuWindow, "Menu", 0, 0, SidebarWidth, MenuSize.y)
+local SectionOne = MachoMenuGroup(MenuWindow, "Tabs", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
+local SectionTwo = MachoMenuGroup(MenuWindow, "MainContentLeft", SectionTwoStart.x, SectionTwoStart.y, SectionTwoEnd.x, SectionTwoEnd.y)
+local SectionThree = MachoMenuGroup(MenuWindow, "MainContentRight", SectionThreeStart.x, SectionThreeStart.y, SectionThreeEnd.x, SectionThreeEnd.y)
 
-local tabs = {
-  "Player", "Server", "Teleport", "Weapon",
-  "Vehicle", "Emotes", "Events", "Settings"
-}
-
+local tabs = {"Self", "Server", "Teleport", "Weapon", "Vehicle", "Animations", "Triggers", "Settings"}
 local selectedTab = 1
 
--- We'll store LeftPanel and RightPanel groups here so we can destroy and recreate on tab change
-local LeftPanelGroup
-local RightPanelGroup
+local function clearGroup(group)
+    -- Clear previous menu items in group
+    -- Depends on Macho API - pseudo code function here
+    -- You may need to destroy and recreate group in Macho
+end
 
--- Clear and recreate panel groups with new content on tab change
-local function buildPanels()
-  -- Destroy previous if exists
-  if LeftPanelGroup then MachoMenuDestroyGroup(LeftPanelGroup) end
-  if RightPanelGroup then MachoMenuDestroyGroup(RightPanelGroup) end
+local function buildContent()
+    clearGroup(SectionTwo)
+    clearGroup(SectionThree)
 
-  -- Create new groups for panels
-  LeftPanelGroup = MachoMenuGroup(MenuWindow, "LeftPanel", SidebarWidth + PanelGap, 0, SidebarWidth + PanelGap + PanelWidth, MenuSize.y)
-  RightPanelGroup = MachoMenuGroup(MenuWindow, "RightPanel", SidebarWidth + PanelGap + PanelWidth + PanelGap, 0, MenuSize.x, MenuSize.y)
+    if selectedTab == 1 then -- Self Tab Example
+        MachoMenuText(SectionTwo, "Self Tab - Player Options")
+        MachoMenuCheckbox(SectionTwo, "Godmode", function() SetEntityInvincible(PlayerPedId(), true) SetPlayerInvincible(PlayerId(), true) end, function() SetEntityInvincible(PlayerPedId(), false) SetPlayerInvincible(PlayerId(), false) end)
+        -- Add all other checkboxes/buttons similarly...
 
-  -- Build content depending on selected tab
-  if selectedTab == 1 then -- Player tab
-    MachoMenuText(LeftPanelGroup, "Player Options")
-    MachoMenuCheckbox(LeftPanelGroup, "Godmode",
-      function() print("Godmode on") end,
-      function() print("Godmode off") end
-    )
-    -- Add other player checkboxes/buttons as needed
+        MachoMenuText(SectionThree, "Misc Options")
+        local modelInput = MachoMenuInputbox(SectionThree, "Model Changer", "Enter model")
+        MachoMenuButton(SectionThree, "Change Model", function()
+            local model = MachoMenuGetInputbox(modelInput)
+            if IsModelValid(GetHashKey(model)) then
+                RequestModel(GetHashKey(model))
+                while not HasModelLoaded(GetHashKey(model)) do Citizen.Wait(10) end
+                SetPlayerModel(PlayerId(), GetHashKey(model))
+                SetModelAsNoLongerNeeded(GetHashKey(model))
+            end
+        end)
+        -- Add rest right panel options
+    elseif selectedTab == 5 then -- Vehicle Tab Example
+        MachoMenuText(SectionTwo, "Vehicle Options")
+        MachoMenuCheckbox(SectionTwo, "Vehicle Godmode", function() TriggerEvent("macho:VehicleGodmodeToggle", true) end, function() TriggerEvent("macho:VehicleGodmodeToggle", false) end)
+        -- Add all vehicle toggles/buttons...
 
-    MachoMenuText(RightPanelGroup, "Misc Options")
-    local modelInput = MachoMenuInputbox(RightPanelGroup, "Model Changer", "...")
-    MachoMenuButton(RightPanelGroup, "Change Model", function()
-      local model = MachoMenuGetInputbox(modelInput)
-      print("Change Model to "..model)
-      -- Add real implementation here
+        MachoMenuText(SectionThree, "Spawn Vehicle")
+        local vehicleInput = MachoMenuInputbox(SectionThree, "Vehicle Model", "Enter model")
+        MachoMenuButton(SectionThree, "Spawn Vehicle", function()
+            local model = MachoMenuGetInputbox(vehicleInput)
+            if IsModelValid(GetHashKey(model)) then
+                RequestModel(GetHashKey(model))
+                while not HasModelLoaded(GetHashKey(model)) do Citizen.Wait(10) end
+                local pos = GetEntityCoords(PlayerPedId())
+                local veh = CreateVehicle(GetHashKey(model), pos.x + 3, pos.y + 3, pos.z, GetEntityHeading(PlayerPedId()), true, false)
+                SetPedIntoVehicle(PlayerPedId(), veh, -1)
+                SetModelAsNoLongerNeeded(GetHashKey(model))
+            end
+        end)
+    else
+        MachoMenuText(SectionTwo, "Tab "..tabs[selectedTab].." content coming soon!")
+        MachoMenuText(SectionThree, "")
+    end
+end
+
+for i, name in ipairs(tabs) do
+    MachoMenuButton(SectionOne, name, function()
+        selectedTab = i
+        buildContent()
     end)
-    -- Add other right panel buttons
-  elseif selectedTab == 2 then
-    MachoMenuText(LeftPanelGroup, "Server Options")
-    MachoMenuButton(LeftPanelGroup, "Kill Player", function() print("Kill Player") end)
-    -- Similarly add rest buttons for server tab
-  end
-
-  -- Add similar blocks for other tabs...
 end
 
-local function selectTab(index)
-  selectedTab = index
-  buildPanels()
-end
+buildContent()
 
-for i, tabName in ipairs(tabs) do
-  MachoMenuButton(SidebarGroup, tabName, function()
-    selectTab(i)
-  end)
-end
-
--- Build initial panel on menu load
-buildPanels()
-
--- Close button always visible
-MachoMenuButton(SidebarGroup, "Close Menu", function()
-  MachoMenuDestroy(MenuWindow)
+MachoMenuButton(SectionOne, "Close Menu", function()
+    MachoMenuDestroy(MenuWindow)
 end)
