@@ -1,102 +1,264 @@
+-- Keybind to open/close menu (0x2E = DELETE)
 MachoMenuSetKeybind(WindowHandle, 0x2E)
 
-local MenuSize = vec2(600, 350)
-local MenuStartCoords = vec2(500, 500) 
+-- Menu size and position
+local MenuSize = vec2(800, 400)
+local MenuStartCoords = vec2(500, 500)
 
-local TabsBarWidth = 0 -- The width of the tabs bar, height is assumed to be MenuHeight as it goes top to bottom
-
-local SectionChildWidth = MenuSize.x - TabsBarWidth -- The total size for sections on the left hand side
-local SectionsCount = 3 
-local SectionsPadding = 10 -- pixels between each section (that makes SetionCount + 1 = total padding areas)
-local MachoPaneGap = 10 -- Hard coded gap of accent at the top.
-
--- Therefore each section width must be:
+local TabsBarWidth = 0
+local SectionsCount = 3
+local SectionsPadding = 10
+local MachoPaneGap = 10
+local SectionChildWidth = MenuSize.x - TabsBarWidth
 local EachSectionWidth = (SectionChildWidth - (SectionsPadding * (SectionsCount + 1))) / SectionsCount
 
-
--- Now you have each sections absolute width, you can calculate their X coordinate and Y coordinate
+-- Section coords
 local SectionOneStart = vec2(TabsBarWidth + (SectionsPadding * 1) + (EachSectionWidth * 0), SectionsPadding + MachoPaneGap)
 local SectionOneEnd = vec2(SectionOneStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
-
 local SectionTwoStart = vec2(TabsBarWidth + (SectionsPadding * 2) + (EachSectionWidth * 1), SectionsPadding + MachoPaneGap)
 local SectionTwoEnd = vec2(SectionTwoStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
-
 local SectionThreeStart = vec2(TabsBarWidth + (SectionsPadding * 3) + (EachSectionWidth * 2), SectionsPadding + MachoPaneGap)
 local SectionThreeEnd = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
 
--- Create our window, MenuStartCoords is where the menu starts
+-- Create main window
 MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
-
 MachoMenuSetAccent(MenuWindow, 150, 0, 0)
 
--- First tab
-FirstSection = MachoMenuGroup(MenuWindow, "Util.lua", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
+-- Sections
+SectionOne = MachoMenuGroup(MenuWindow, "Util.lua", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
+SectionTwo = MachoMenuGroup(MenuWindow, "Options", SectionTwoStart.x, SectionTwoStart.y, SectionTwoEnd.x, SectionTwoEnd.y)
+SectionThree = MachoMenuGroup(MenuWindow, "Extras", SectionThreeStart.x, SectionThreeStart.y, SectionThreeEnd.x, SectionThreeEnd.y)
 
-MachoMenuButton(FirstSection, "Close", function()
-    MachoMenuDestroy(MenuWindow)
-  end)
+-----------------------------------------------------------------
+-- RESET FUNCTION (clears Section 2 and 3 when switching category)
+-----------------------------------------------------------------
+local function ClearSection(section)
+    MachoMenuClear(section)
+end
 
-MachoMenuButton(FirstSection, "Self", function()
-        
-  end)
+-----------------------------------------------------------------
+-- SELF OPTIONS
+-----------------------------------------------------------------
+local function LoadSelfOptions()
+    ClearSection(SectionTwo)
+    ClearSection(SectionThree)
 
-MachoMenuButton(FirstSection, "Spawner", function()
-        
-  end)
+    -- GODMODE
+    MachoMenuCheckbox(SectionTwo, "Godmode",
+        function()
+            Citizen.CreateThread(function()
+                while true do
+                    SetEntityInvincible(PlayerPedId(), true)
+                    Citizen.Wait(0)
+                end
+            end)
+        end,
+        function()
+            SetEntityInvincible(PlayerPedId(), false)
+        end
+    )
 
-MachoMenuButton(FirstSection, "Events", function()
-        
-  end)
+    -- INFINITE STAMINA
+    MachoMenuCheckbox(SectionTwo, "Infinite Stamina",
+        function()
+            Citizen.CreateThread(function()
+                while true do
+                    RestorePlayerStamina(PlayerId(), 1.0)
+                    Citizen.Wait(0)
+                end
+            end)
+        end,
+        function() end
+    )
 
-MachoMenuButton(FirstSection, "Teleport", function()
-        
-  end)
+    -- NOCLIP
+    MachoMenuCheckbox(SectionTwo, "NoClip",
+        function()
+            Citizen.CreateThread(function()
+                local ped = PlayerPedId()
+                while true do
+                    if not IsControlPressed(0, 21) then break end -- hold SHIFT to stay in noclip
+                    local coords = GetEntityCoords(ped)
+                    SetEntityInvincible(ped, true)
+                    SetEntityVisible(ped, false, false)
+                    SetEntityCollision(ped, false, false)
 
-MachoMenuButton(FirstSection, "Troll", function()
-        
-  end)
+                    if IsControlPressed(0, 32) then -- W
+                        coords = coords + (GetEntityForwardVector(ped) * 1.0)
+                    end
+                    if IsControlPressed(0, 33) then -- S
+                        coords = coords - (GetEntityForwardVector(ped) * 1.0)
+                    end
+                    if IsControlPressed(0, 34) then -- A
+                        coords = coords - (GetEntityRightVector(ped) * 1.0)
+                    end
+                    if IsControlPressed(0, 35) then -- D
+                        coords = coords + (GetEntityRightVector(ped) * 1.0)
+                    end
 
-MachoMenuButton(FirstSection, "Vehicle", function()
+                    SetEntityCoordsNoOffset(ped, coords.x, coords.y, coords.z, true, true, true)
+                    Citizen.Wait(0)
+                end
+            end)
+        end,
+        function()
+            local ped = PlayerPedId()
+            SetEntityInvincible(ped, false)
+            SetEntityVisible(ped, true, false)
+            SetEntityCollision(ped, true, true)
+        end
+    )
 
-  end)
+    -- REVIVE
+    MachoMenuButton(SectionThree, "Revive", function()
+        local ped = PlayerPedId()
+        ResurrectPed(ped)
+        SetEntityHealth(ped, 200)
+        ClearPedTasksImmediately(ped)
+    end)
 
--- Second tab
-SecondSection = MachoMenuGroup(MenuWindow, "Section Two", SectionTwoStart.x, SectionTwoStart.y, SectionTwoEnd.x, SectionTwoEnd.y)
+    -- SUICIDE
+    MachoMenuButton(SectionThree, "Suicide", function()
+        SetEntityHealth(PlayerPedId(), 0)
+    end)
+end
 
-MenuSliderHandle = MachoMenuSlider(SecondSection, "Slider", 10, 0, 100, "%", 0, function(Value)
-    print("Slider updated with value ".. Value)
-end)
+-----------------------------------------------------------------
+-- TELEPORT OPTIONS
+-----------------------------------------------------------------
+local function LoadTeleportOptions()
+    ClearSection(SectionTwo)
+    ClearSection(SectionThree)
 
-MachoMenuCheckbox(SecondSection, "Checkbox", 
-    function()
-        print("Enabled")
-    end,
-    function()
-        print("Disabled")
-    end
-)
+    MachoMenuButton(SectionTwo, "TP to Waypoint", function()
+        local waypoint = GetFirstBlipInfoId(8)
+        if DoesBlipExist(waypoint) then
+            local coords = GetBlipInfoIdCoord(waypoint)
+            SetEntityCoords(PlayerPedId(), coords.x, coords.y, coords.z + 1.0, false, false, false, false)
+        end
+    end)
 
-TextHandle = MachoMenuText(SecondSection, "SomeText")
+    MachoMenuInputbox(SectionThree, "TP to Coords", "x,y,z")
+    MachoMenuButton(SectionThree, "Go!", function()
+        local input = MachoMenuGetInputbox(SectionThree)
+        local x,y,z = string.match(input, "([^,]+),([^,]+),([^,]+)")
+        SetEntityCoords(PlayerPedId(), tonumber(x), tonumber(y), tonumber(z) + 1.0, false, false, false, false)
+    end)
+end
 
-MachoMenuButton(SecondSection, "Change Text Example", function()
-    MachoMenuSetText(TextHandle, "ChangedText")
-  end)
+-----------------------------------------------------------------
+-- VEHICLE OPTIONS
+-----------------------------------------------------------------
+local function LoadVehicleOptions()
+    ClearSection(SectionTwo)
+    ClearSection(SectionThree)
 
+    MachoMenuButton(SectionTwo, "Spawn Adder", function()
+        local ped = PlayerPedId()
+        local coords = GetEntityCoords(ped)
+        local vehicle = CreateVehicle(`adder`, coords.x, coords.y, coords.z, GetEntityHeading(ped), true, false)
+        TaskWarpPedIntoVehicle(ped, vehicle, -1)
+    end)
 
--- Third tab
-ThirdSection = MachoMenuGroup(MenuWindow, "Section Three", SectionThreeStart.x, SectionThreeStart.y, SectionThreeEnd.x, SectionThreeEnd.y)
+    MachoMenuButton(SectionTwo, "Repair Vehicle", function()
+        local veh = GetVehiclePedIsIn(PlayerPedId(), false)
+        if veh ~= 0 then SetVehicleFixed(veh) end
+    end)
 
-InputBoxHandle = MachoMenuInputbox(ThirdSection, "Input", "...")
-MachoMenuButton(ThirdSection, "Print Input", function()
-    local LocatedText = MachoMenuGetInputbox(InputBoxHandle)
-    print(LocatedText)
-  end)
+    MachoMenuButton(SectionThree, "Delete Vehicle", function()
+        local veh = GetVehiclePedIsIn(PlayerPedId(), false)
+        if veh ~= 0 then DeleteEntity(veh) end
+    end)
 
-DropDownHandle = MachoMenuDropDown(ThirdSection, "Drop Down", 
-    function(Index)
-        print("New Value is " .. Index)
-    end, 
-    "Selectable 1",
-    "Selectable 2",
-    "Selectable 3"
-)
+    MachoMenuButton(SectionThree, "Max Upgrades", function()
+        local veh = GetVehiclePedIsIn(PlayerPedId(), false)
+        if veh ~= 0 then
+            SetVehicleModKit(veh, 0)
+            for i = 0, 50 do
+                SetVehicleMod(veh, i, GetNumVehicleMods(veh, i)-1, false)
+            end
+        end
+    end)
+end
+
+-----------------------------------------------------------------
+-- EVENTS OPTIONS
+-----------------------------------------------------------------
+local function LoadEventsOptions()
+    ClearSection(SectionTwo)
+    ClearSection(SectionThree)
+
+    MachoMenuButton(SectionTwo, "Set Weather: Clear", function() SetWeatherTypeNowPersist("CLEAR") end)
+    MachoMenuButton(SectionTwo, "Set Weather: Rain", function() SetWeatherTypeNowPersist("RAIN") end)
+    MachoMenuButton(SectionTwo, "Set Weather: Snow", function() SetWeatherTypeNowPersist("XMAS") end)
+
+    MachoMenuSlider(SectionThree, "Time of Day", 12, 0, 23, "h", 0, function(val)
+        NetworkOverrideClockTime(val, 0, 0)
+    end)
+end
+
+-----------------------------------------------------------------
+-- SPAWNER OPTIONS
+-----------------------------------------------------------------
+local function LoadSpawnerOptions()
+    ClearSection(SectionTwo)
+    ClearSection(SectionThree)
+
+    MachoMenuButton(SectionTwo, "Give Pistol", function()
+        GiveWeaponToPed(PlayerPedId(), `WEAPON_PISTOL`, 250, false, true)
+    end)
+
+    MachoMenuButton(SectionTwo, "Give AR", function()
+        GiveWeaponToPed(PlayerPedId(), `WEAPON_CARBINERIFLE`, 250, false, true)
+    end)
+
+    MachoMenuButton(SectionThree, "Spawn NPC", function()
+        local coords = GetEntityCoords(PlayerPedId())
+        CreatePed(4, `a_m_m_business_01`, coords.x+2, coords.y, coords.z, 0.0, true, true)
+    end)
+
+    MachoMenuButton(SectionThree, "Spawn Prop (Cone)", function()
+        local coords = GetEntityCoords(PlayerPedId())
+        CreateObject(`prop_roadcone02a`, coords.x+1, coords.y, coords.z, true, true, true)
+    end)
+end
+
+-----------------------------------------------------------------
+-- TROLL OPTIONS
+-----------------------------------------------------------------
+local function LoadTrollOptions()
+    ClearSection(SectionTwo)
+    ClearSection(SectionThree)
+
+    MachoMenuButton(SectionTwo, "Ragdoll Self", function()
+        SetPedToRagdoll(PlayerPedId(), 5000, 5000, 0, true, true, false)
+    end)
+
+    MachoMenuButton(SectionTwo, "Explode Self", function()
+        local coords = GetEntityCoords(PlayerPedId())
+        AddExplosion(coords.x, coords.y, coords.z, 2, 10.0, true, false, 1.0)
+    end)
+
+    MachoMenuButton(SectionThree, "Fake Freeze", function()
+        FreezeEntityPosition(PlayerPedId(), true)
+        Citizen.Wait(5000)
+        FreezeEntityPosition(PlayerPedId(), false)
+    end)
+
+    MachoMenuButton(SectionThree, "Black Screen", function()
+        DoScreenFadeOut(2000)
+        Citizen.Wait(3000)
+        DoScreenFadeIn(2000)
+    end)
+end
+
+---------------------------------------------------
+-- SECTION 1 BUTTONS (Navigation)
+---------------------------------------------------
+MachoMenuButton(SectionOne, "Self", function() LoadSelfOptions() end)
+MachoMenuButton(SectionOne, "Teleport", function() LoadTeleportOptions() end)
+MachoMenuButton(SectionOne, "Vehicle", function() LoadVehicleOptions() end)
+MachoMenuButton(SectionOne, "Events", function() LoadEventsOptions() end)
+MachoMenuButton(SectionOne, "Spawner", function() LoadSpawnerOptions() end)
+MachoMenuButton(SectionOne, "Troll", function() LoadTrollOptions() end)
+MachoMenuButton(SectionOne, "Close", function() MachoMenuDestroy(MenuWindow) end)
