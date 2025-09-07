@@ -22,7 +22,7 @@ local SectionThreeEnd = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.y 
 local MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
 MachoMenuSetAccent(MenuWindow, 135, 0, 0)
 
-local SectionOneGroup = MachoMenuGroup(MenuWindow, "SectionOne", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
+local SectionOneGroup = MachoMenuGroup(MenuWindow, "Util.lua", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
 local SectionTwoGroup = MachoMenuGroup(MenuWindow, "SectionTwo", SectionTwoStart.x, SectionTwoStart.y, SectionTwoEnd.x, SectionTwoEnd.y)
 local SectionThreeGroup = MachoMenuGroup(MenuWindow, "SectionThree", SectionThreeStart.x, SectionThreeStart.y, SectionThreeEnd.x, SectionThreeEnd.y)
 
