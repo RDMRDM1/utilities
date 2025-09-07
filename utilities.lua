@@ -6,9 +6,8 @@ local PanelGap = 12
 local PanelWidth = (MenuSize.x - SidebarWidth - PanelGap) / 2
 
 local MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
-MachoMenuSetAccent(MenuWindow, 135, 0, 0) -- Red accent
+MachoMenuSetAccent(MenuWindow, 0, 120, 255) -- Blue accent
 
--- Sidebar Group (Tabbed buttons)
 local SidebarGroup = MachoMenuGroup(MenuWindow, "Menu", 0, 0, SidebarWidth, MenuSize.y)
 
 local tabs = {
@@ -18,9 +17,49 @@ local tabs = {
 
 local selectedTab = 1
 
+-- We'll store LeftPanel and RightPanel groups here so we can destroy and recreate on tab change
+local LeftPanelGroup
+local RightPanelGroup
+
+-- Clear and recreate panel groups with new content on tab change
+local function buildPanels()
+  -- Destroy previous if exists
+  if LeftPanelGroup then MachoMenuDestroyGroup(LeftPanelGroup) end
+  if RightPanelGroup then MachoMenuDestroyGroup(RightPanelGroup) end
+
+  -- Create new groups for panels
+  LeftPanelGroup = MachoMenuGroup(MenuWindow, "LeftPanel", SidebarWidth + PanelGap, 0, SidebarWidth + PanelGap + PanelWidth, MenuSize.y)
+  RightPanelGroup = MachoMenuGroup(MenuWindow, "RightPanel", SidebarWidth + PanelGap + PanelWidth + PanelGap, 0, MenuSize.x, MenuSize.y)
+
+  -- Build content depending on selected tab
+  if selectedTab == 1 then -- Player tab
+    MachoMenuText(LeftPanelGroup, "Player Options")
+    MachoMenuCheckbox(LeftPanelGroup, "Godmode",
+      function() print("Godmode on") end,
+      function() print("Godmode off") end
+    )
+    -- Add other player checkboxes/buttons as needed
+
+    MachoMenuText(RightPanelGroup, "Misc Options")
+    local modelInput = MachoMenuInputbox(RightPanelGroup, "Model Changer", "...")
+    MachoMenuButton(RightPanelGroup, "Change Model", function()
+      local model = MachoMenuGetInputbox(modelInput)
+      print("Change Model to "..model)
+      -- Add real implementation here
+    end)
+    -- Add other right panel buttons
+  elseif selectedTab == 2 then
+    MachoMenuText(LeftPanelGroup, "Server Options")
+    MachoMenuButton(LeftPanelGroup, "Kill Player", function() print("Kill Player") end)
+    -- Similarly add rest buttons for server tab
+  end
+
+  -- Add similar blocks for other tabs...
+end
+
 local function selectTab(index)
   selectedTab = index
-  -- Logic to refresh visibility could go here if needed
+  buildPanels()
 end
 
 for i, tabName in ipairs(tabs) do
@@ -29,52 +68,10 @@ for i, tabName in ipairs(tabs) do
   end)
 end
 
--- Left panel and right panel (content)
-local LeftPanel = MachoMenuGroup(MenuWindow, "LeftPanel", SidebarWidth + PanelGap, 0, SidebarWidth + PanelGap + PanelWidth, MenuSize.y)
-local RightPanel = MachoMenuGroup(MenuWindow, "RightPanel", SidebarWidth + PanelGap + PanelWidth + PanelGap, 0, MenuSize.x, MenuSize.y)
+-- Build initial panel on menu load
+buildPanels()
 
--- Scrollable container note: Add scroll logic if Macho supports or repeat menu creation on tab switch.
-
--- === Player Tab Example ===
-if selectedTab == 1 then
-  -- Left Panel Controls (toggles)
-  MachoMenuText(LeftPanel, "Player Options")
-  MachoMenuCheckbox(LeftPanel, "Godmode", function() end, function() end)
-  MachoMenuCheckbox(LeftPanel, "Invisibility", function() end, function() end)
-  MachoMenuCheckbox(LeftPanel, "No Ragdoll", function() end, function() end)
-  MachoMenuCheckbox(LeftPanel, "Infinite Stamina", function() end, function() end)
-  MachoMenuCheckbox(LeftPanel, "Freecam", function() end, function() end)
-  MachoMenuCheckbox(LeftPanel, "No Clip", function() end, function() end)
-  MachoMenuCheckbox(LeftPanel, "Fly", function() end, function() end)
-  MachoMenuCheckbox(LeftPanel, "Super Punch", function() end, function() end)
-  MachoMenuCheckbox(LeftPanel, "Super Strength", function() end, function() end)
-  MachoMenuCheckbox(LeftPanel, "Super Jump", function() end, function() end)
-  MachoMenuCheckbox(LeftPanel, "Throw People From Vehicle", function() end, function() end)
-
-  -- Right Panel Controls (sliders & buttons)
-  MachoMenuText(RightPanel, "Misc")
-  MachoMenuSlider(RightPanel, "Health Amount", 100, 0, 100, "%", 1, function(value)
-    -- Implement health percentage set here
-  end)
-  MachoMenuSlider(RightPanel, "Armor Amount", 100, 0, 100, "%", 1, function(value)
-    -- Implement armor percentage set here
-  end)
-  local modelInput = MachoMenuInputbox(RightPanel, "Model Changer", "...")
-  MachoMenuButton(RightPanel, "Change Model", function()
-    local model = MachoMenuGetInputbox(modelInput)
-    -- Change model logic here
-  end)
-  MachoMenuButton(RightPanel, "Heal", function() end)
-  MachoMenuButton(RightPanel, "Armor", function() end)
-  MachoMenuButton(RightPanel, "Revive", function() end)
-  MachoMenuButton(RightPanel, "Native Revive", function() end)
-  MachoMenuButton(RightPanel, "Suicide", function() end)
-  MachoMenuButton(RightPanel, "Clear Task", function() end)
-end
-
--- Add similar conditional blocks for tabs 2 to 8 with their respective options as previously detailed
-
--- Close button always visible on left
+-- Close button always visible
 MachoMenuButton(SidebarGroup, "Close Menu", function()
   MachoMenuDestroy(MenuWindow)
 end)
