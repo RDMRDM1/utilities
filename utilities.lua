@@ -9,6 +9,7 @@ local MachoPaneGap = 10
 local SectionChildWidth = MenuSize.x - TabsBarWidth
 local EachSectionWidth = (SectionChildWidth - (SectionsPadding * (SectionsCount + 1))) / SectionsCount
 
+-- Calculate section rectangles
 local SectionOneStart = vec2(TabsBarWidth + (SectionsPadding * 1) + (EachSectionWidth * 0), SectionsPadding + MachoPaneGap)
 local SectionOneEnd = vec2(SectionOneStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
 
@@ -18,193 +19,66 @@ local SectionTwoEnd = vec2(SectionTwoStart.x + EachSectionWidth, MenuSize.y - Se
 local SectionThreeStart = vec2(TabsBarWidth + (SectionsPadding * 3) + (EachSectionWidth * 2), SectionsPadding + MachoPaneGap)
 local SectionThreeEnd = vec2(SectionThreeStart.x + EachSectionWidth, MenuSize.y - SectionsPadding)
 
-local MenuWindow = nil
-local SectionOneGroup = nil
-local SectionTwoGroup = nil
-local SectionThreeGroup = nil
+local MenuWindow = MachoMenuWindow(MenuStartCoords.x, MenuStartCoords.y, MenuSize.x, MenuSize.y)
+MachoMenuSetAccent(MenuWindow, 0, 120, 255)
 
-local playerPed = PlayerPedId()
-local playerId = PlayerId()
-local noclipActive = false
+local SectionOneGroup = MachoMenuGroup(MenuWindow, "SectionOne", SectionOneStart.x, SectionOneStart.y, SectionOneEnd.x, SectionOneEnd.y)
+local SectionTwoGroup = MachoMenuGroup(MenuWindow, "SectionTwo", SectionTwoStart.x, SectionTwoStart.y, SectionTwoEnd.x, SectionTwoEnd.y)
+local SectionThreeGroup = MachoMenuGroup(MenuWindow, "SectionThree", SectionThreeStart.x, SectionThreeStart.y, SectionThreeEnd.x, SectionThreeEnd.y)
+
+-- Example filling in SectionOne with tab buttons to act as menu tabs
+local tabs = {
+  "Self", "Server", "Teleport", "Weapon", "Vehicle", "Animations", "Triggers", "Settings"
+}
 local selectedTab = 1
 
-local tabs = {"Self", "Server", "Teleport", "Weapon", "Vehicle", "Animations", "Triggers", "Settings"}
-
-local function destroyMenu()
-    if MenuWindow then
-        MachoMenuDestroy(MenuWindow)
-        MenuWindow = nil
-    end
+local function clearGroup(group)
+  -- Destroy or clear all existing controls in the group for refresh
+  MachoMenuDestroyGroup(group)
 end
 
-local function buildSelfTab()
-    if SectionTwoGroup then MachoMenuDestroyGroup(SectionTwoGroup) end
-    if SectionThreeGroup then MachoMenuDestroyGroup(SectionThreeGroup) end
+local function rebuildContent()
+  clearGroup(SectionTwoGroup)
+  clearGroup(SectionThreeGroup)
 
-    SectionTwoGroup = MachoMenuGroup(MenuWindow, "Player Options", SectionTwoStart.x, SectionTwoStart.y, SectionTwoEnd.x, SectionTwoEnd.y)
-    SectionThreeGroup = MachoMenuGroup(MenuWindow, "Miscellaneous", SectionThreeStart.x, SectionThreeStart.y, SectionThreeEnd.x, SectionThreeEnd.y)
-
+  if selectedTab == 1 then -- Self tab controls example
     MachoMenuText(SectionTwoGroup, "Player Options")
     MachoMenuCheckbox(SectionTwoGroup, "Godmode",
-        function()
-            SetEntityInvincible(playerPed, true)
-            SetPlayerInvincible(playerId, true)
-        end,
-        function()
-            SetEntityInvincible(playerPed, false)
-            SetPlayerInvincible(playerId, false)
-        end
-    )
-    MachoMenuCheckbox(SectionTwoGroup, "Invisibility",
-        function()
-            SetEntityVisible(playerPed, false, false)
-        end,
-        function()
-            SetEntityVisible(playerPed, true, false)
-        end
-    )
-    MachoMenuCheckbox(SectionTwoGroup, "No Ragdoll",
-        function()
-            SetPedCanRagdoll(playerPed, false)
-        end,
-        function()
-            SetPedCanRagdoll(playerPed, true)
-        end
-    )
-    MachoMenuCheckbox(SectionTwoGroup, "Infinite Stamina",
-        function()
-            SetPlayerUnlimitedStamina(playerId, true)
-        end,
-        function()
-            SetPlayerUnlimitedStamina(playerId, false)
-        end
-    )
-    MachoMenuCheckbox(SectionTwoGroup, "Tiny Ped",
-        function()
-            SetEntityScale(playerPed, 0.5)
-        end,
-        function()
-            SetEntityScale(playerPed, 1.0)
-        end
-    )
-    MachoMenuCheckbox(SectionTwoGroup, "No Clip",
-        function()
-            noclipActive = true
-            TriggerEvent("macho:EnableNoClip", true)
-        end,
-        function()
-            noclipActive = false
-            TriggerEvent("macho:EnableNoClip", false)
-        end
-    )
-    MachoMenuCheckbox(SectionTwoGroup, "Free Camera",
-        function()
-            TriggerEvent("macho:EnableFreeCam", true)
-        end,
-        function()
-            TriggerEvent("macho:EnableFreeCam", false)
-        end
-    )
-    MachoMenuCheckbox(SectionTwoGroup, "Super Jump", function() SetSuperJumpThisFrame(playerId) end, function() end)
-    MachoMenuCheckbox(SectionTwoGroup, "Super Punch",
-        function()
-            TriggerEvent("macho:EnableSuperPunch", true)
-        end,
-        function()
-            TriggerEvent("macho:EnableSuperPunch", false)
-        end
-    )
-    MachoMenuCheckbox(SectionTwoGroup, "Force Third Person",
-        function()
-            SetFollowPedCamViewMode(1)
-        end,
-        function()
-            SetFollowPedCamViewMode(0)
-        end
-    )
-    MachoMenuCheckbox(SectionTwoGroup, "Force Driveby",
-        function()
-            SetPlayerCanDoDriveBy(playerId, true)
-        end,
-        function()
-            SetPlayerCanDoDriveBy(playerId, false)
-        end
-    )
-    MachoMenuCheckbox(SectionTwoGroup, "Anti-Headshot",
-        function()
-            TriggerEvent("macho:AntiHeadshotEnable", true)
-        end,
-        function()
-            TriggerEvent("macho:AntiHeadshotEnable", false)
-        end
-    )
-    MachoMenuCheckbox(SectionTwoGroup, "Anti-Freeze",
-        function()
-            TriggerEvent("macho:AntiFreezeEnable", true)
-        end,
-        function()
-            TriggerEvent("macho:AntiFreezeEnable", false)
-        end
-    )
-    MachoMenuCheckbox(SectionTwoGroup, "Anti-Blackscreen",
-        function()
-            TriggerEvent("macho:AntiBlackScreenEnable", true)
-        end,
-        function()
-            TriggerEvent("macho:AntiBlackScreenEnable", false)
-        end
-    )
+      function() print("Godmode enabled") end,
+      function() print("Godmode disabled") end)
+    -- more checkboxes here...
 
     MachoMenuText(SectionThreeGroup, "Misc Options")
-
-    local modelInput = MachoMenuInputbox(SectionThreeGroup, "Model Changer", "Enter model name")
+    local modelInput = MachoMenuInputbox(SectionThreeGroup, "Model Changer", "Enter model")
     MachoMenuButton(SectionThreeGroup, "Change Model", function()
-        local model = MachoMenuGetInputbox(modelInput)
-        if IsModelValid(GetHashKey(model)) then
-            RequestModel(GetHashKey(model))
-            while not HasModelLoaded(GetHashKey(model)) do Citizen.Wait(10) end
-            SetPlayerModel(playerId, GetHashKey(model))
-            SetModelAsNoLongerNeeded(GetHashKey(model))
-        end
+      local model = MachoMenuGetInputbox(modelInput)
+      print("Change Model to: "..model)
     end)
+  elseif selectedTab == 5 then -- Vehicle tab example
+    MachoMenuText(SectionTwoGroup, "Vehicle Options")
+    MachoMenuCheckbox(SectionTwoGroup, "Vehicle Godmode", function() print("Veh Godmode on") end, function() print("Veh Godmode off") end)
+    -- more options...
 
-    MachoMenuButton(SectionThreeGroup, "Max Health / Armor", function()
-        SetEntityHealth(playerPed, GetEntityMaxHealth(playerPed))
-        SetPedArmour(playerPed, 100)
+    MachoMenuText(SectionThreeGroup, "Vehicle Spawn")
+    local vehicleInput = MachoMenuInputbox(SectionThreeGroup, "Vehicle Model", "Enter vehicle model")
+    MachoMenuButton(SectionThreeGroup, "Spawn Vehicle", function()
+      local model = MachoMenuGetInputbox(vehicleInput)
+      print("Spawn Vehicle model: "..model)
     end)
-    MachoMenuButton(SectionThreeGroup, "Revive", function()
-        NetworkResurrectLocalPlayer(GetEntityCoords(playerPed), true, true, false)
-        ClearPedTasksImmediately(playerPed)
-    end)
-    MachoMenuButton(SectionThreeGroup, "Suicide", function()
-        SetEntityHealth(playerPed, 0)
-    end)
-    MachoMenuButton(SectionThreeGroup, "Clear Task", function()
-        ClearPedTasksImmediately(playerPed)
-    end)
-    MachoMenuButton(SectionThreeGroup, "Clear Vision", function()
-        ClearTimecycleModifier()
-    end)
-    MachoMenuButton(SectionThreeGroup, "Randomize Outfit", function()
-        TriggerEvent("macho:RandomizeOutfit")
-    end)
-
-    MachoMenuKeybind(SectionTwoGroup, "Toggle NoClip (U)", 0x55, function(key, toggle)
-        noclipActive = toggle
-        TriggerEvent("macho:EnableNoClip", toggle)
-    end)
+  else
+    MachoMenuText(SectionTwoGroup, "Tab "..tabs[selectedTab].." content coming soon.")
+  end
 end
 
-local menuOpen = false
+for i, tabName in ipairs(tabs) do
+  MachoMenuButton(SectionOneGroup, tabName, function()
+    selectedTab = i
+    rebuildContent()
+  end)
+end
 
-RegisterCommand("toggleMachoMenu", function()
-    if menuOpen then
-        destroyMenu()
-        menuOpen = false
-    else
-        createMenu()
-        menuOpen = true
-    end
-end, false)
+rebuildContent()
 
-RegisterKeyMapping("toggleMachoMenu", "Toggle Macho Menu (Caps Lock)", "keyboard", "CAPITAL")
+MachoMenuButton(SectionOneGroup, "Close Menu", function()
+  MachoMenuDestroy(MenuWindow)
+end)
